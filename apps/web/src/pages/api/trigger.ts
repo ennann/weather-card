@@ -22,7 +22,7 @@ export async function POST(context: APIContext) {
   const url = new URL(context.request.url);
   const key = url.searchParams.get('key') ?? '';
   if (key !== token) {
-    return new Response('Unauthorized', { status: 401 });
+    return Response.json({ error: 'Invalid key' }, { status: 401 });
   }
 
   // Forward city param to Worker
@@ -30,14 +30,19 @@ export async function POST(context: APIContext) {
   const target = new URL('/trigger', workerUrl);
   if (city) target.searchParams.set('city', city);
 
-  const resp = await fetch(target.toString(), {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  try {
+    const resp = await fetch(target.toString(), {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-  const body = await resp.text();
-  return new Response(body, {
-    status: resp.status,
-    headers: { 'Content-Type': 'application/json' },
-  });
+    const body = await resp.text();
+    return new Response(body, {
+      status: resp.status,
+      headers: { 'Content-Type': resp.headers.get('Content-Type') || 'application/json' },
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return Response.json({ error: `Worker unreachable: ${msg}` }, { status: 502 });
+  }
 }
