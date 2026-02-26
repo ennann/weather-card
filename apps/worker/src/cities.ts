@@ -1,9 +1,10 @@
 import citiesData from '../data/cities.json';
 import slugMap from '../data/city-slugs.json';
 
+const allCities: string[] = Object.values(citiesData.cities).flat();
+
 export function pickRandomCity(): string {
-  const cities = citiesData.cities;
-  return cities[Math.floor(Math.random() * cities.length)];
+  return allCities[Math.floor(Math.random() * allCities.length)];
 }
 
 export function getCitySlug(city: string): string {
