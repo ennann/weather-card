@@ -3,8 +3,18 @@ export const prerender = false;
 import Base from '../layouts/Base.astro';
 import Gallery from '../components/Gallery';
 ---
-<Base title="Weather Card">
-  <div class="mx-auto max-w-7xl px-4 py-6">
+<Base title="Weather Card — AI 天气卡片">
+  <div class="mx-auto max-w-6xl px-4 sm:px-5 pt-6 sm:pt-10 pb-6">
+    <!-- Hero -->
+    <div class="text-center mb-6 sm:mb-10 fade-in-up">
+      <h1 class="font-heading text-2xl sm:text-3xl md:text-4xl font-700 tracking-tight text-ink leading-tight">
+        今日天气，一张卡片
+      </h1>
+      <p class="mt-2 sm:mt-3 text-[13px] sm:text-[15px] text-ink-muted max-w-md mx-auto leading-relaxed">
+        随机为全球城市生成 3D 微缩场景天气卡片
+      </p>
+    </div>
+    <!-- Gallery -->
     <Gallery client:load />
   </div>
 </Base>

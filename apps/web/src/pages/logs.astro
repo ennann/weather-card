@@ -4,10 +4,10 @@ import Base from '../layouts/Base.astro';
 import LogsTable from '../components/LogsTable';
 ---
 <Base title="Weather Card — Logs">
-  <div class="mx-auto max-w-6xl px-4 py-8">
-    <div class="mb-6">
-      <h1 class="font-heading text-2xl font-semibold text-ink">Generation Logs</h1>
-      <p class="mt-1 text-sm text-ink-muted">Daily card generation run history and status.</p>
+  <div class="mx-auto max-w-6xl px-5 pt-10 pb-6">
+    <div class="mb-8 fade-in-up">
+      <h1 class="font-heading text-2xl font-600 tracking-tight text-ink">生成日志</h1>
+      <p class="mt-1.5 text-[14px] text-ink-muted">每日卡片生成记录与运行状态</p>
     </div>
     <LogsTable client:load />
   </div>
