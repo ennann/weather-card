@@ -46,7 +46,7 @@ export default function LogsTable() {
       const params = new URLSearchParams({ page: String(page), limit: String(limit) });
       if (status) params.set('status', status);
       const res = await fetch(`/api/logs?${params}`);
-      const data = await res.json();
+      const data = (await res.json()) as { logs: GenerationRun[]; total: number };
       setLogs(data.logs);
       setTotal(data.total);
     } finally {

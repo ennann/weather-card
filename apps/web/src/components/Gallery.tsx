@@ -26,7 +26,7 @@ export default function Gallery() {
     setLoading(true);
     try {
       const res = await fetch(`/api/cards?page=${p}&limit=20`);
-      const data = await res.json();
+      const data = (await res.json()) as { cards: Card[]; total: number };
       setCards((prev) => (p === 1 ? data.cards : [...prev, ...data.cards]));
       setTotal(data.total);
     } finally {
