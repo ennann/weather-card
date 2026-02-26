@@ -6,6 +6,7 @@ interface Env {
   BUCKET: R2Bucket;
   GENERATE_CARD: Workflow;
   GEMINI_API_KEY: string;
+  TRIGGER_TOKEN: string;
 }
 
 export default {
@@ -23,6 +24,10 @@ export default {
 
     // Manual trigger: POST /trigger?city=杭州
     if (url.pathname === '/trigger' && request.method === 'POST') {
+      const auth = request.headers.get('Authorization');
+      if (!auth || auth !== `Bearer ${env.TRIGGER_TOKEN}`) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
       const city = url.searchParams.get('city') || undefined;
       const runId = `${Date.now()}`;
       const instance = await env.GENERATE_CARD.create({
