@@ -142,7 +142,7 @@ export default function LogsTable() {
                     <td className="px-4 py-3">
                       {log.image_r2_key ? (
                         <img
-                          src={`/api/images/${encodeURIComponent(log.image_r2_key)}`}
+                          src={`/api/images/${log.image_r2_key}`}
                           alt=""
                           className="h-10 w-7 rounded-md object-cover ring-1 ring-border"
                           loading="lazy"
