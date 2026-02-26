@@ -11,7 +11,7 @@ interface Env {
 
 export default {
   async scheduled(_controller: ScheduledController, env: Env, _ctx: ExecutionContext) {
-    const runId = `run-${Date.now()}`;
+    const runId = String(Date.now());
     const instance = await env.GENERATE_CARD.create({
       id: runId,
       params: { runId },
@@ -30,7 +30,7 @@ export default {
       }
       try {
         const city = url.searchParams.get('city') || undefined;
-        const runId = `manual-${Date.now()}`;
+        const runId = String(Date.now());
         const instance = await env.GENERATE_CARD.create({
           id: runId,
           params: { runId, city },

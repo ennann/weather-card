@@ -62,21 +62,34 @@ export default function LogsTable() {
 
   return (
     <div className="fade-in-up">
-      {/* Status tabs */}
-      <div className="mb-5 flex gap-1.5">
-        {STATUS_TABS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => { setStatus(tab.value); setPage(1); }}
-            className={`cursor-pointer rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
-              status === tab.value
-                ? 'bg-ink text-white shadow-sm'
-                : 'text-ink-muted hover:text-ink hover:bg-surface-dim'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Status tabs + refresh */}
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex gap-1.5">
+          {STATUS_TABS.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => { setStatus(tab.value); setPage(1); }}
+              className={`cursor-pointer rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
+                status === tab.value
+                  ? 'bg-ink text-white shadow-sm'
+                  : 'text-ink-muted hover:text-ink hover:bg-surface-dim'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => fetchLogs()}
+          disabled={loading}
+          className="cursor-pointer rounded-lg px-3 py-1.5 text-sm text-ink-muted hover:text-ink hover:bg-surface-dim transition-all disabled:opacity-30"
+          title="刷新"
+        >
+          <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+          </svg>
+        </button>
       </div>
 
       {/* Table */}
@@ -84,6 +97,7 @@ export default function LogsTable() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-ink-faint">
+              <th className="px-4 py-3 font-medium">Run ID</th>
               <th className="px-4 py-3 font-medium">Time</th>
               <th className="px-4 py-3 font-medium">City</th>
               <th className="px-4 py-3 font-medium">Weather</th>
@@ -97,7 +111,7 @@ export default function LogsTable() {
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-border-dim">
-                  {Array.from({ length: 7 }).map((_, j) => (
+                  {Array.from({ length: 8 }).map((_, j) => (
                     <td key={j} className="px-4 py-3.5">
                       <div className="skeleton h-4 w-16 rounded" />
                     </td>
@@ -106,7 +120,7 @@ export default function LogsTable() {
               ))
             ) : logs.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-16 text-center text-ink-muted">
+                <td colSpan={8} className="px-4 py-16 text-center text-ink-muted">
                   No logs found
                 </td>
               </tr>
@@ -118,6 +132,9 @@ export default function LogsTable() {
                     className="cursor-pointer border-b border-border-dim transition-colors duration-150 hover:bg-surface-dim/50"
                     onClick={() => setExpanded(expanded === log.run_id ? null : log.run_id)}
                   >
+                    <td className="px-4 py-3 whitespace-nowrap text-ink-faint font-mono text-xs">
+                      {log.run_id}
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap text-ink-muted tabular-nums">
                       {formatTime(log.created_at)}
                     </td>
@@ -155,7 +172,7 @@ export default function LogsTable() {
                   {/* Expanded error row */}
                   {expanded === log.run_id && log.error_message && (
                     <tr key={`${log.run_id}-err`}>
-                      <td colSpan={7} className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm">
+                      <td colSpan={8} className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm">
                         <span className="font-medium text-red-700">Error: </span>
                         <span className="text-red-600">{log.error_message}</span>
                       </td>
