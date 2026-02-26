@@ -20,19 +20,12 @@ export const prerender = false;
  *       run_id, city, resolved_city_name, weather_date,
  *       weather_condition, weather_icon, temp_min, temp_max,
  *       current_temp, image_r2_key, created_at,
- *       image_token: string,   // HMAC token, valid 7 days
- *       image_url:   string,   // absolute URL ready to download
+ *       image_url: string,  // absolute Worker URL ready to download
  *     }>
  *   }
- *
- * Tokens are valid for 7 days and can be used directly with the
- * /api/images/[key] endpoint by any HTTP client.
  */
 
 import type { APIContext } from 'astro';
-import { createToken } from '../../../lib/imageToken';
-
-const TOKEN_EXPIRY_SECONDS = 7 * 86_400; // 7 days for internal use
 
 export async function GET(context: APIContext) {
   const { env } = context.locals.runtime;
@@ -77,18 +70,12 @@ export async function GET(context: APIContext) {
         .bind(limit)
         .all();
 
-  // ── Build response with signed URLs ──────────────────────────────────────
-  const secret: string = env.IMAGE_SECRET ?? '';
+  // ── Build response ────────────────────────────────────────────────────────
   const origin = url.origin;
-
-  const cards = await Promise.all(
-    (results as any[]).map(async (row) => {
-      if (!row.image_r2_key || !secret) return row;
-      const token = await createToken(row.image_r2_key, secret, TOKEN_EXPIRY_SECONDS);
-      const image_url = `${origin}/api/images/${row.image_r2_key}?t=${encodeURIComponent(token)}`;
-      return { ...row, image_token: token, image_url };
-    }),
-  );
+  const cards = (results as any[]).map((row) => ({
+    ...row,
+    image_url: `${origin}/api/images/${row.image_r2_key}`,
+  }));
 
   return Response.json({ date, total: cards.length, cards });
 }

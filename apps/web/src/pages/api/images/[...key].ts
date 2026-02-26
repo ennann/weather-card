@@ -1,7 +1,6 @@
 export const prerender = false;
 
 import type { APIContext } from 'astro';
-import { verifyToken } from '../../../lib/imageToken';
 
 export async function GET(context: APIContext) {
   const { env } = context.locals.runtime;
@@ -10,22 +9,8 @@ export async function GET(context: APIContext) {
 
   if (!key) return new Response('Missing key', { status: 400 });
 
-  const secret: string = env.IMAGE_SECRET ?? '';
-
-  // ── Layer 1: HMAC token verification ────────────────────────────────────
-  // When IMAGE_SECRET is configured every request must carry a valid ?t= token
-  // that was signed by /api/cards.  This ensures images can only be served to
-  // clients that first went through the cards API (rate-limited, same-origin).
-  if (secret) {
-    const token = url.searchParams.get('t') ?? '';
-    if (!token || !(await verifyToken(key, token, secret))) {
-      return new Response('Forbidden', { status: 403 });
-    }
-  }
-
-  // ── Layer 2: Hotlink / Referer protection ────────────────────────────────
-  // If a Referer header is present it must come from the same host.
-  // This stops other websites from embedding our images directly.
+  // Hotlink / Referer protection: if a Referer header is present it must come
+  // from the same host. This stops other websites from embedding our images.
   const referer = context.request.headers.get('referer');
   if (referer) {
     try {
