@@ -2,7 +2,7 @@ import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:work
 import { GoogleGenAI } from '@google/genai';
 import { getCurrentWeather } from './weather';
 import { buildPrompt } from './prompt';
-import { pickRandomCity } from './cities';
+import { pickRandomCity, getCitySlug } from './cities';
 
 interface Env {
   DB: D1Database;
@@ -12,12 +12,13 @@ interface Env {
 }
 
 interface GenerateParams {
+  runId: string;
   city?: string;
 }
 
 export class GenerateCardWorkflow extends WorkflowEntrypoint<Env, GenerateParams> {
   async run(event: WorkflowEvent<GenerateParams>, step: WorkflowStep) {
-    const runId = event.id;
+    const runId = event.payload.runId;
     const startTime = Date.now();
     const city = event.payload.city || pickRandomCity();
 
@@ -30,47 +31,54 @@ export class GenerateCardWorkflow extends WorkflowEntrypoint<Env, GenerateParams
     });
 
     try {
-      // Step 2: Fetch weather
-      const weather = await step.do('fetch-weather', {
-        retries: { limit: 2, delay: '5 seconds', backoff: 'linear' },
-      }, async () => {
-        return await getCurrentWeather(city);
+      // Step 2: Fetch weather (best-effort)
+      const weather = await step.do('fetch-weather', async () => {
+        try {
+          return await getCurrentWeather(city);
+        } catch (e) {
+          console.log(`Weather fetch failed for ${city}: ${e}`);
+          return null;
+        }
       });
 
-      // Step 3: Update weather data in DB
-      await step.do('update-weather', async () => {
-        await this.env.DB.prepare(
-          `UPDATE generation_runs SET
-             resolved_city_name = ?, weather_condition = ?, weather_icon = ?,
-             temp_min = ?, temp_max = ?, current_temp = ?, updated_at = datetime('now')
-           WHERE run_id = ?`
-        ).bind(
-          weather.resolvedCityName, weather.conditionText, weather.conditionIcon,
-          weather.tempMin, weather.tempMax, weather.currentTemp, runId
-        ).run();
-      });
+      // Step 3: Update weather data if available
+      if (weather) {
+        await step.do('update-weather', async () => {
+          await this.env.DB.prepare(
+            `UPDATE generation_runs SET
+               resolved_city_name = ?, weather_condition = ?, weather_icon = ?,
+               temp_min = ?, temp_max = ?, current_temp = ?, updated_at = datetime('now')
+             WHERE run_id = ?`
+          ).bind(
+            weather.resolvedCityName, weather.conditionText, weather.conditionIcon,
+            weather.tempMin, weather.tempMax, weather.currentTemp, runId
+          ).run();
+        });
+      }
 
-      // Step 4: Generate image with Gemini
-      const imageData = await step.do('generate-image', {
+      // Step 4: Generate image with Gemini + Google Search
+      const imageResult = await step.do('generate-image', {
         retries: { limit: 1, delay: '10 seconds', backoff: 'linear' },
       }, async () => {
-        const model = this.env.GEMINI_MODEL || 'gemini-2.5-flash-preview-04-17';
-        const prompt = buildPrompt(city, weather);
+        const model = this.env.GEMINI_MODEL || 'gemini-3-pro-image-preview';
+        const prompt = buildPrompt(city);
         const ai = new GoogleGenAI({ apiKey: this.env.GEMINI_API_KEY });
         const response = await ai.models.generateContent({
           model,
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           config: {
             responseModalities: ['IMAGE', 'TEXT'],
+            tools: [{ googleSearch: {} }],
           },
         });
-        const part = response.candidates?.[0]?.content?.parts?.find(
-          (p: any) => p.inlineData
-        );
-        if (!part?.inlineData?.data) throw new Error('No image in Gemini response');
+
+        const parts = response.candidates?.[0]?.content?.parts || [];
+        const imagePart = parts.find((p: any) => p.inlineData);
+        if (!imagePart?.inlineData?.data) throw new Error('No image in Gemini response');
+
         return {
-          base64: part.inlineData.data,
-          mimeType: part.inlineData.mimeType || 'image/png',
+          base64: imagePart.inlineData.data,
+          mimeType: imagePart.inlineData.mimeType || 'image/png',
           model,
         };
       });
@@ -78,10 +86,11 @@ export class GenerateCardWorkflow extends WorkflowEntrypoint<Env, GenerateParams
       // Step 5: Upload to R2
       const r2Key = await step.do('upload-r2', async () => {
         const date = new Date().toISOString().split('T')[0];
-        const key = `cards/${date}/${runId}.png`;
-        const bytes = Uint8Array.from(atob(imageData.base64), (c) => c.charCodeAt(0));
+        const slug = getCitySlug(city);
+        const key = `cards/${date}-${slug}-${runId}.png`;
+        const bytes = Uint8Array.from(atob(imageResult.base64), (c) => c.charCodeAt(0));
         await this.env.BUCKET.put(key, bytes, {
-          httpMetadata: { contentType: imageData.mimeType },
+          httpMetadata: { contentType: imageResult.mimeType },
         });
         return key;
       });
@@ -94,10 +103,9 @@ export class GenerateCardWorkflow extends WorkflowEntrypoint<Env, GenerateParams
              image_r2_key = ?, model = ?, status = 'succeeded',
              duration_ms = ?, updated_at = datetime('now')
            WHERE run_id = ?`
-        ).bind(r2Key, imageData.model, durationMs, runId).run();
+        ).bind(r2Key, imageResult.model, durationMs, runId).run();
       });
     } catch (error) {
-      // Record failure
       const durationMs = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : String(error);
       await step.do('record-failure', async () => {

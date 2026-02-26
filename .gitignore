@@ -1,8 +1,6 @@
 node_modules/
-.wrangler/
 dist/
 .astro/
-outputs/
+.wrangler/
 .env
 *.sqlite
-worker/dist/
