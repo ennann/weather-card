@@ -11,7 +11,7 @@ interface Env {
 
 export default {
   async scheduled(_controller: ScheduledController, env: Env, _ctx: ExecutionContext) {
-    const runId = `${Date.now()}`;
+    const runId = `run-${Date.now()}`;
     const instance = await env.GENERATE_CARD.create({
       id: runId,
       params: { runId },
@@ -29,12 +29,12 @@ export default {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
       const city = url.searchParams.get('city') || undefined;
-      const runId = `${Date.now()}`;
+      const runId = `manual-${Date.now()}`;
       const instance = await env.GENERATE_CARD.create({
         id: runId,
         params: { runId, city },
       });
-      return Response.json({ id: instance.id, status: 'started' });
+      return Response.json({ ok: true, instanceId: instance.id, runId, city });
     }
 
     return new Response('Weather Card Worker', { status: 200 });
