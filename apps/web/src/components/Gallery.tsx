@@ -177,7 +177,8 @@ export default function Gallery() {
             <img
               src={imageUrl(lightbox.image_r2_key)}
               alt={`${lightbox.city} weather card`}
-              className="max-h-[78vh] max-w-[88vw] sm:max-w-sm w-auto rounded-2xl object-contain shadow-2xl"
+              className="max-h-[78vh] max-w-[88vw] sm:max-w-sm w-auto rounded-2xl object-contain shadow-2xl cursor-zoom-out"
+              onClick={() => setLightbox(null)}
             />
             {/* Card info below image */}
             <div className="mt-3 flex items-center justify-center gap-2 sm:gap-3 text-white/70 text-[12px] sm:text-[13px] flex-wrap">
