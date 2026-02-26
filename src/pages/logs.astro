@@ -1,0 +1,12 @@
+---
+export const prerender = false;
+import Base from '../layouts/Base.astro';
+import LogsTable from '../components/LogsTable';
+---
+<Base title="Weather Cards — Logs">
+  <div class="mb-8">
+    <h1 class="font-display text-3xl text-neutral-100">Generation Logs</h1>
+    <p class="mt-1 text-sm text-neutral-500">Daily card generation run history and status.</p>
+  </div>
+  <LogsTable client:load />
+</Base>

@@ -1,0 +1,8 @@
+---
+export const prerender = false;
+import Base from '../layouts/Base.astro';
+import Gallery from '../components/Gallery';
+---
+<Base title="Weather Cards">
+  <Gallery client:load />
+</Base>
