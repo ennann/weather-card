@@ -36,9 +36,9 @@ export default function LogsTable() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
+  const [limit, setLimit] = useState(10);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const limit = 20;
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -52,7 +52,7 @@ export default function LogsTable() {
     } finally {
       setLoading(false);
     }
-  }, [page, status]);
+  }, [page, status, limit]);
 
   useEffect(() => {
     fetchLogs();
@@ -82,7 +82,7 @@ export default function LogsTable() {
         <button
           onClick={() => fetchLogs()}
           disabled={loading}
-          className="cursor-pointer rounded-lg px-3 py-1.5 text-sm text-ink-muted hover:text-ink hover:bg-surface-dim transition-all disabled:opacity-30"
+          className="cursor-pointer inline-flex items-center justify-center w-8 h-8 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-dim transition-all disabled:opacity-30"
           title="刷新"
         >
           <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -186,30 +186,39 @@ export default function LogsTable() {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-ink-muted">
+      <div className="mt-4 flex items-center justify-between text-sm text-ink-muted">
+        <div className="flex items-center gap-2">
           <span>{total} records</span>
-          <div className="flex gap-1.5">
-            <button
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="cursor-pointer rounded-lg px-3 py-1.5 transition-colors duration-150 hover:bg-surface-dim disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              Prev
-            </button>
-            <span className="flex items-center px-2 tabular-nums text-ink">
-              {page} / {totalPages}
-            </span>
-            <button
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className="cursor-pointer rounded-lg px-3 py-1.5 transition-colors duration-150 hover:bg-surface-dim disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
+          <select
+            value={limit}
+            onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+            className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-muted outline-none cursor-pointer"
+          >
+            {[10, 20, 50].map((n) => (
+              <option key={n} value={n}>{n} / page</option>
+            ))}
+          </select>
         </div>
-      )}
+        <div className="flex items-center gap-1.5">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+            className="cursor-pointer rounded-lg px-3 py-1.5 transition-colors duration-150 hover:bg-surface-dim disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Prev
+          </button>
+          <span className="flex items-center px-2 tabular-nums text-ink">
+            {page} / {totalPages}
+          </span>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            className="cursor-pointer rounded-lg px-3 py-1.5 transition-colors duration-150 hover:bg-surface-dim disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
