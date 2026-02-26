@@ -1,0 +1,19 @@
+{
+  "name": "Weather Card",
+  "short_name": "天气卡片",
+  "description": "AI 驱动的天气卡片生成器，每天自动为全球城市生成 3D 等距风格天气卡片。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F6",
+  "theme_color": "#FAF9F6",
+  "orientation": "portrait-primary",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
