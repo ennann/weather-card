@@ -63,6 +63,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = new URL(context.request.url);
   if (!pathname.startsWith('/api/')) return next();
 
+  // Trusted internal callers present a Bearer token — skip rate limiting.
+  // The endpoint itself validates the key; here we only need to decide
+  // whether to apply the rate limiter.
+  const internalKey: string = context.locals.runtime?.env?.INTERNAL_API_KEY ?? '';
+  const auth = context.request.headers.get('authorization') ?? '';
+  if (internalKey && auth === `Bearer ${internalKey}`) {
+    return next();
+  }
+
   maybePrune();
 
   // Cloudflare sets CF-Connecting-IP; fall back to X-Forwarded-For for local dev.

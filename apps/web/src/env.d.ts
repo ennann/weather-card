@@ -8,6 +8,8 @@ interface Env {
   GEMINI_API_KEY: string;
   /** HMAC secret for signed image tokens. Set via `wrangler secret put IMAGE_SECRET`. */
   IMAGE_SECRET?: string;
+  /** API key for trusted internal workflows. Set via `wrangler secret put INTERNAL_API_KEY`. */
+  INTERNAL_API_KEY?: string;
 }
 
 declare namespace App {
