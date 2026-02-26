@@ -1,0 +1,35 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "weather-card-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-02-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "weather-cards-db",
+      "database_id": "<REPLACE_AFTER_D1_CREATE>",
+      "migrations_dir": "../migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "weather-card-images"
+    }
+  ],
+  "workflows": [
+    {
+      "name": "generate-card-workflow",
+      "binding": "GENERATE_CARD",
+      "class_name": "GenerateCardWorkflow"
+    }
+  ],
+  "triggers": {
+    "crons": ["0 1 * * *"]
+  },
+  "vars": {
+    "GEMINI_API_KEY": "",
+    "GEMINI_MODEL": "gemini-2.5-flash-preview-04-17"
+  }
+}
