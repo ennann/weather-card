@@ -16,21 +16,28 @@ interface Card {
 
 export default function Gallery() {
   const [cards, setCards] = useState<Card[]>([]);
-  const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [lightbox, setLightbox] = useState<Card | null>(null);
   const sentinel = useRef<HTMLDivElement>(null);
+  const pageRef = useRef(1);
+  const loadingRef = useRef(false);
 
   const fetchCards = useCallback(async (p: number) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     try {
       const res = await fetch(`/api/cards?page=${p}&limit=20`);
       const data = (await res.json()) as { cards: Card[]; total: number };
       setCards((prev) => (p === 1 ? data.cards : [...prev, ...data.cards]));
       setTotal(data.total);
+      pageRef.current = p;
     } finally {
+      loadingRef.current = false;
       setLoading(false);
+      setInitialLoad(false);
     }
   }, []);
 
@@ -42,17 +49,19 @@ export default function Gallery() {
     if (!sentinel.current) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !loading && cards.length < total) {
-          const next = page + 1;
-          setPage(next);
-          fetchCards(next);
+        if (entry.isIntersecting && !loadingRef.current) {
+          const currentPage = pageRef.current;
+          const loaded = cards.length;
+          if (loaded > 0 && loaded < total) {
+            fetchCards(currentPage + 1);
+          }
         }
       },
-      { rootMargin: '400px' }
+      { rootMargin: '600px' }
     );
     observer.observe(sentinel.current);
     return () => observer.disconnect();
-  }, [loading, cards.length, total, page, fetchCards]);
+  }, [cards.length, total, fetchCards]);
 
   // Close lightbox on Escape
   useEffect(() => {
@@ -65,8 +74,10 @@ export default function Gallery() {
 
   const imageUrl = (key: string) => `/api/images/${key}`;
 
+  const hasMore = cards.length > 0 && cards.length < total;
+
   // Empty state
-  if (!loading && cards.length === 0) {
+  if (!initialLoad && !loading && cards.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32">
         <div
@@ -88,7 +99,7 @@ export default function Gallery() {
   return (
     <>
       {/* Card count */}
-      {!loading && total > 0 && (
+      {!initialLoad && total > 0 && (
         <div className="mb-3 sm:mb-5 fade-in">
           <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-surface-dim text-[11px] sm:text-[12px] font-medium text-ink-muted">
             <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
@@ -97,12 +108,12 @@ export default function Gallery() {
         </div>
       )}
 
-      {/* Masonry grid */}
-      <div className="columns-2 gap-2 sm:gap-3 md:columns-3 lg:columns-4">
+      {/* CSS Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
         {cards.map((card, i) => (
           <div
             key={card.run_id}
-            className="card-rise mb-2 sm:mb-3 break-inside-avoid cursor-pointer group"
+            className="card-rise cursor-pointer group"
             style={{ animationDelay: `${(i % 12) * 60}ms` }}
             onClick={() => card.image_r2_key && setLightbox(card)}
           >
@@ -130,20 +141,28 @@ export default function Gallery() {
       </div>
 
       {/* Loading skeletons */}
-      {loading && (
-        <div className="columns-2 gap-2 sm:gap-3 md:columns-3 lg:columns-4 mt-2 sm:mt-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="mb-3 break-inside-avoid">
+      {(initialLoad || loading) && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 mt-2 sm:mt-3">
+          {Array.from({ length: initialLoad ? 8 : 4 }).map((_, i) => (
+            <div key={i}>
               <div
                 className="skeleton rounded-xl"
-                style={{ height: `${260 + (i % 4) * 60}px` }}
+                style={{ height: `${320 + (i % 3) * 40}px` }}
               />
             </div>
           ))}
         </div>
       )}
 
-      <div ref={sentinel} className="h-1" />
+      {/* Sentinel for infinite scroll */}
+      {hasMore && <div ref={sentinel} className="h-1" />}
+
+      {/* End indicator */}
+      {!hasMore && cards.length > 0 && !loading && (
+        <div className="text-center py-8 fade-in">
+          <p className="text-[12px] text-ink-faint">已加载全部 {total} 张卡片</p>
+        </div>
+      )}
 
       {/* Lightbox */}
       {lightbox && lightbox.image_r2_key && (
