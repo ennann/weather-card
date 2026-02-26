@@ -6,6 +6,8 @@ interface Env {
   DB: D1Database;
   BUCKET: R2Bucket;
   GEMINI_API_KEY: string;
+  /** API key for trusted internal workflows. Set via `wrangler secret put INTERNAL_API_KEY`. */
+  INTERNAL_API_KEY?: string;
 }
 
 declare namespace App {
