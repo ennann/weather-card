@@ -12,10 +12,17 @@ const { title = 'Weather Card' } = Astro.props;
     <title>{title}</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="description" content="AI 驱动的天气卡片生成器，每天自动为全球城市生成 3D 等距风格天气卡片。" />
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#FAF9F6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Weather Card" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
   </head>
   <body class="min-h-screen bg-surface text-ink flex flex-col">
     <!-- Header -->
-    <header class="sticky top-0 z-50 backdrop-blur-xl bg-surface/80 border-b border-border/40">
+    <header id="site-header" class="sticky top-0 z-50 backdrop-blur-xl bg-surface/80 border-b border-border/40 transition-transform duration-300 ease-in-out">
       <div class="mx-auto max-w-6xl px-4 sm:px-5 h-12 sm:h-14 flex items-center justify-between">
         <a href="/" class="flex items-center gap-2 group">
           <span class="text-lg sm:text-xl">🌤</span>
@@ -59,3 +66,36 @@ const { title = 'Weather Card' } = Astro.props;
 <style>
   @import '../styles/global.css';
 </style>
+
+<script>
+  const header = document.getElementById('site-header');
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+
+  function updateHeader() {
+    const currentScrollY = window.scrollY;
+
+    if (currentScrollY > 60) {
+      if (currentScrollY > lastScrollY) {
+        // 向下滚动 — 隐藏 header
+        header?.classList.add('-translate-y-full');
+      } else {
+        // 向上滚动 — 显示 header
+        header?.classList.remove('-translate-y-full');
+      }
+    } else {
+      // 靠近顶部时始终显示
+      header?.classList.remove('-translate-y-full');
+    }
+
+    lastScrollY = currentScrollY;
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(updateHeader);
+      ticking = true;
+    }
+  }, { passive: true });
+</script>
