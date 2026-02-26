@@ -8,7 +8,6 @@
     "worker:dev": "npm run dev -w apps/worker",
     "worker:deploy": "npm run deploy -w apps/worker",
     "db:migrate:local": "wrangler d1 migrations apply weather-card-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply weather-card-db --remote",
-    "gen:slugs": "npx tsx scripts/gen-city-slugs.ts"
+    "db:migrate:remote": "wrangler d1 migrations apply weather-card-db --remote"
   }
 }
