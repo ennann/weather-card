@@ -167,7 +167,7 @@ export default function Gallery() {
       {/* Lightbox */}
       {lightbox && lightbox.image_r2_key && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-lg cursor-zoom-out fade-in"
+          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-lg cursor-zoom-out fade-in"
           onClick={() => setLightbox(null)}
         >
           <div
@@ -181,8 +181,8 @@ export default function Gallery() {
               onClick={() => setLightbox(null)}
             />
             {/* Card info below image */}
-            <div className="mt-3 flex items-center justify-center gap-2 sm:gap-3 text-white/70 text-[12px] sm:text-[13px] flex-wrap">
-              <span className="font-medium text-white/90">
+            <div className="mt-3 flex items-center justify-center gap-2 sm:gap-3 text-ink/60 text-[12px] sm:text-[13px] flex-wrap">
+              <span className="font-medium text-ink/80">
                 {lightbox.resolved_city_name || lightbox.city}
               </span>
               {lightbox.weather_icon && (
