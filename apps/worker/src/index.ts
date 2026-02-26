@@ -28,13 +28,18 @@ export default {
       if (!auth || auth !== `Bearer ${env.TRIGGER_TOKEN}`) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
-      const city = url.searchParams.get('city') || undefined;
-      const runId = `manual-${Date.now()}`;
-      const instance = await env.GENERATE_CARD.create({
-        id: runId,
-        params: { runId, city },
-      });
-      return Response.json({ ok: true, instanceId: instance.id, runId, city });
+      try {
+        const city = url.searchParams.get('city') || undefined;
+        const runId = `manual-${Date.now()}`;
+        const instance = await env.GENERATE_CARD.create({
+          id: runId,
+          params: { runId, city },
+        });
+        return Response.json({ ok: true, instanceId: instance.id, runId, city });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        return Response.json({ error: msg }, { status: 500 });
+      }
     }
 
     return new Response('Weather Card Worker', { status: 200 });
