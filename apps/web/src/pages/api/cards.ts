@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import type { APIContext } from 'astro';
+import { createToken } from '../../lib/imageToken';
 
 export async function GET(context: APIContext) {
   const { env } = context.locals.runtime;
@@ -22,8 +23,20 @@ export async function GET(context: APIContext) {
     `SELECT COUNT(*) as total FROM generation_runs WHERE status = 'succeeded' AND image_r2_key IS NOT NULL`
   ).all();
 
+  // Attach a signed, time-limited token to each image key so the image
+  // endpoint can verify that the URL was issued by this server.
+  const secret: string = env.IMAGE_SECRET ?? '';
+  const cards = await Promise.all(
+    (results as any[]).map(async (row) => {
+      if (row.image_r2_key && secret) {
+        return { ...row, image_token: await createToken(row.image_r2_key, secret) };
+      }
+      return row;
+    }),
+  );
+
   return Response.json({
-    cards: results,
+    cards,
     total: (countResult[0] as any).total,
     page,
     limit,
