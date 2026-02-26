@@ -1,0 +1,97 @@
+---
+export const prerender = false;
+import Base from '../layouts/Base.astro';
+
+const url = new URL(Astro.request.url);
+const key = url.searchParams.get('key') ?? '';
+const token: string = Astro.locals.runtime.env.TRIGGER_TOKEN ?? '';
+const authorized = !!token && key === token;
+---
+
+{authorized ? (
+<Base title="Weather Card — Create">
+  <div class="mx-auto max-w-md px-5 pt-16 pb-10">
+    <h1 class="font-heading text-xl font-600 tracking-tight text-ink mb-6">手动生成卡片</h1>
+
+    <div id="form-section" class="space-y-4">
+      <div>
+        <label for="city-input" class="block text-[13px] text-ink-muted mb-1.5">城市名称（留空随机）</label>
+        <input
+          id="city-input"
+          type="text"
+          placeholder="如：杭州、Tokyo、Paris"
+          class="w-full rounded-lg border border-border bg-surface-dim px-3 py-2 text-[14px] text-ink placeholder:text-ink-faint outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
+        />
+      </div>
+
+      <div class="flex gap-3">
+        <button
+          id="btn-submit"
+          class="flex-1 rounded-lg bg-ink text-surface px-4 py-2 text-[14px] font-500 hover:bg-ink/85 active:scale-[.98] transition-all"
+        >
+          生成
+        </button>
+        <button
+          id="btn-random"
+          class="flex-1 rounded-lg border border-border text-ink px-4 py-2 text-[14px] font-500 hover:bg-surface-dim active:scale-[.98] transition-all"
+        >
+          随机生成
+        </button>
+      </div>
+    </div>
+
+    <div id="result" class="mt-6 text-[13px] text-ink-muted hidden"></div>
+  </div>
+</Base>
+) : (
+<Base title="Weather Card">
+  <div class="mx-auto max-w-md px-5 pt-16 pb-10 text-center">
+    <p class="text-ink-faint text-[14px]">无权访问</p>
+  </div>
+</Base>
+)}
+
+<script define:vars={{ key }}>
+  if (!document.getElementById('btn-submit')) throw new Error('unauthorized');
+
+  const cityInput = document.getElementById('city-input');
+  const btnSubmit = document.getElementById('btn-submit');
+  const btnRandom = document.getElementById('btn-random');
+  const resultDiv = document.getElementById('result');
+
+  async function trigger(city) {
+    btnSubmit.disabled = true;
+    btnRandom.disabled = true;
+    resultDiv.classList.remove('hidden');
+    resultDiv.textContent = '正在触发生成…';
+
+    try {
+      const params = new URLSearchParams({ key });
+      if (city) params.set('city', city);
+
+      const resp = await fetch(`/api/trigger?${params}`, { method: 'POST' });
+      const data = await resp.json();
+
+      if (resp.ok) {
+        resultDiv.innerHTML = `<span class="text-green-600">已触发！</span> 城市：${data.city || '随机'} / Run ID：<code class="text-[12px]">${data.runId}</code>`;
+      } else {
+        resultDiv.innerHTML = `<span class="text-red-500">失败：</span>${data.error || resp.statusText}`;
+      }
+    } catch (e) {
+      resultDiv.innerHTML = `<span class="text-red-500">请求失败：</span>${e.message}`;
+    } finally {
+      btnSubmit.disabled = false;
+      btnRandom.disabled = false;
+    }
+  }
+
+  btnSubmit.addEventListener('click', () => trigger(cityInput.value.trim()));
+  btnRandom.addEventListener('click', () => {
+    cityInput.value = '';
+    trigger('');
+  });
+
+  cityInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') trigger(cityInput.value.trim());
+  });
+</script>
