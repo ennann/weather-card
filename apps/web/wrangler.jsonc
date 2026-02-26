@@ -8,8 +8,8 @@
     {
       "binding": "DB",
       "database_name": "weather-card-db",
-      "database_id": "<REPLACE_AFTER_D1_CREATE>",
-      "migrations_dir": "migrations"
+      "database_id": "6b0af20a-602b-47ed-aa1f-d92546b62e4a",
+      "migrations_dir": "../../migrations"
     }
   ],
   "r2_buckets": [

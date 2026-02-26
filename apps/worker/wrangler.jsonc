@@ -1,5 +1,5 @@
 {
-  "$schema": "../node_modules/wrangler/config-schema.json",
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "weather-card-worker",
   "main": "src/index.ts",
   "compatibility_date": "2026-02-25",
@@ -8,8 +8,8 @@
     {
       "binding": "DB",
       "database_name": "weather-card-db",
-      "database_id": "<REPLACE_AFTER_D1_CREATE>",
-      "migrations_dir": "../migrations"
+      "database_id": "6b0af20a-602b-47ed-aa1f-d92546b62e4a",
+      "migrations_dir": "../../migrations"
     }
   ],
   "r2_buckets": [
@@ -29,7 +29,6 @@
     "crons": ["0 1 * * *"]
   },
   "vars": {
-    "GEMINI_API_KEY": "",
-    "GEMINI_MODEL": "gemini-2.5-flash-preview-04-17"
+    "GEMINI_MODEL": "gemini-3-pro-image-preview"
   }
 }

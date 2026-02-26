@@ -9,9 +9,10 @@ interface Env {
 
 export default {
   async scheduled(_controller: ScheduledController, env: Env, _ctx: ExecutionContext) {
+    const runId = `${Date.now()}`;
     const instance = await env.GENERATE_CARD.create({
-      id: `cron-${Date.now()}`,
-      params: {},
+      id: runId,
+      params: { runId },
     });
     console.log(`Workflow started: ${instance.id}`);
   },
@@ -22,9 +23,10 @@ export default {
     // Manual trigger: POST /trigger?city=杭州
     if (url.pathname === '/trigger' && request.method === 'POST') {
       const city = url.searchParams.get('city') || undefined;
+      const runId = `${Date.now()}`;
       const instance = await env.GENERATE_CARD.create({
-        id: `manual-${Date.now()}`,
-        params: { city },
+        id: runId,
+        params: { runId, city },
       });
       return Response.json({ id: instance.id, status: 'started' });
     }
