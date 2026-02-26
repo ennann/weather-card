@@ -30,5 +30,12 @@
   },
   "vars": {
     "GEMINI_MODEL": "gemini-3-pro-image-preview"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+      "persist": false
+    }
   }
 }
