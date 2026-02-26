@@ -20,7 +20,7 @@
   ],
   "workflows": [
     {
-      "name": "generate-card-workflow",
+      "name": "weather-card-workflow",
       "binding": "GENERATE_CARD",
       "class_name": "GenerateCardWorkflow"
     }
