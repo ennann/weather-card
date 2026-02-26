@@ -19,7 +19,7 @@ export default function Gallery() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<Card | null>(null);
   const sentinel = useRef<HTMLDivElement>(null);
 
   const fetchCards = useCallback(async (p: number) => {
@@ -54,20 +54,32 @@ export default function Gallery() {
     return () => observer.disconnect();
   }, [loading, cards.length, total, page, fetchCards]);
 
-  const imageUrl = (key: string) => `/api/images/${encodeURIComponent(key)}`;
+  // Close lightbox on Escape
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightbox(null);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
+  const imageUrl = (key: string) => `/api/images/${key}`;
 
   // Empty state
   if (!loading && cards.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-40">
-        <div className="mb-6 rounded-2xl bg-accent-soft p-5">
-          <svg className="h-10 w-10 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+      <div className="flex flex-col items-center justify-center py-32">
+        <div
+          className="mb-5 rounded-2xl p-5"
+          style={{ background: 'linear-gradient(135deg, #FEF3E2 0%, #FDE8CD 100%)' }}
+        >
+          <svg className="h-10 w-10 text-[#E67E22]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
           </svg>
         </div>
-        <p className="font-heading text-xl font-semibold text-ink">No cards yet</p>
+        <p className="font-heading text-lg font-semibold text-ink">还没有卡片</p>
         <p className="mt-2 text-sm text-ink-muted">
-          Cards will appear here after the daily generation runs.
+          卡片将在每日生成任务完成后出现
         </p>
       </div>
     );
@@ -75,44 +87,42 @@ export default function Gallery() {
 
   return (
     <>
+      {/* Card count */}
+      {!loading && total > 0 && (
+        <div className="mb-3 sm:mb-5 fade-in">
+          <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-surface-dim text-[11px] sm:text-[12px] font-medium text-ink-muted">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
+            {total} 张卡片
+          </span>
+        </div>
+      )}
+
       {/* Masonry grid */}
-      <div className="columns-2 gap-3 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
+      <div className="columns-2 gap-2 sm:gap-3 md:columns-3 lg:columns-4">
         {cards.map((card, i) => (
           <div
             key={card.run_id}
-            className="card-rise mb-3 break-inside-avoid cursor-pointer group"
-            style={{ animationDelay: `${(i % 10) * 80}ms` }}
-            onClick={() => card.image_r2_key && setLightbox(imageUrl(card.image_r2_key))}
+            className="card-rise mb-2 sm:mb-3 break-inside-avoid cursor-pointer group"
+            style={{ animationDelay: `${(i % 12) * 60}ms` }}
+            onClick={() => card.image_r2_key && setLightbox(card)}
           >
-            <div className="relative overflow-hidden rounded-2xl bg-surface-raised shadow-sm ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:shadow-xl group-hover:shadow-accent/8 group-hover:-translate-y-1 group-hover:ring-accent/30">
+            <div className="relative overflow-hidden rounded-xl bg-surface-raised shadow-sm ring-1 ring-border/40 transition-all duration-300 ease-out group-hover:shadow-lg group-hover:shadow-ink/5 group-hover:-translate-y-0.5 group-hover:ring-border">
               {card.image_r2_key && (
                 <img
                   src={imageUrl(card.image_r2_key)}
                   alt={`${card.city} weather card`}
-                  className="w-full transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                  className="block w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]"
                   loading="lazy"
                 />
               )}
-              {/* Info overlay on hover */}
-              <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-white/95 via-white/80 to-transparent p-3 pt-10 transition-transform duration-300 ease-out group-hover:translate-y-0">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="font-heading text-sm font-semibold text-ink leading-tight">
-                      {card.resolved_city_name || card.city}
-                    </p>
-                    <p className="mt-0.5 text-xs text-ink-muted">
-                      {card.weather_date}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-medium text-ink">
-                      {card.weather_icon} {card.weather_condition}
-                    </p>
-                    <p className="text-xs text-ink-muted">
-                      {card.temp_min}° / {card.temp_max}°
-                    </p>
-                  </div>
-                </div>
+              {/* City + date overlay */}
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent px-2.5 sm:px-3 pb-2 sm:pb-2.5 pt-6 sm:pt-8 flex items-end justify-between">
+                <p className="text-[12px] sm:text-[13px] font-medium text-white/90 leading-tight drop-shadow-sm">
+                  {card.resolved_city_name || card.city}
+                </p>
+                <p className="text-[10px] sm:text-[11px] text-white/60 leading-tight drop-shadow-sm">
+                  {card.weather_date}
+                </p>
               </div>
             </div>
           </div>
@@ -121,12 +131,12 @@ export default function Gallery() {
 
       {/* Loading skeletons */}
       {loading && (
-        <div className="columns-2 gap-3 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 mt-3">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="columns-2 gap-2 sm:gap-3 md:columns-3 lg:columns-4 mt-2 sm:mt-3">
+          {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="mb-3 break-inside-avoid">
               <div
-                className="skeleton rounded-2xl"
-                style={{ height: `${280 + (i % 3) * 80}px` }}
+                className="skeleton rounded-xl"
+                style={{ height: `${260 + (i % 4) * 60}px` }}
               />
             </div>
           ))}
@@ -136,16 +146,34 @@ export default function Gallery() {
       <div ref={sentinel} className="h-1" />
 
       {/* Lightbox */}
-      {lightbox && (
+      {lightbox && lightbox.image_r2_key && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md cursor-zoom-out transition-opacity duration-200"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-lg cursor-zoom-out fade-in"
           onClick={() => setLightbox(null)}
         >
-          <img
-            src={lightbox}
-            alt="Full size card"
-            className="max-h-[92vh] max-w-[92vw] rounded-2xl object-contain shadow-2xl fade-in-up"
-          />
+          <div
+            className="relative flex flex-col items-center px-4 sm:px-0 fade-in-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={imageUrl(lightbox.image_r2_key)}
+              alt={`${lightbox.city} weather card`}
+              className="max-h-[78vh] max-w-[88vw] sm:max-w-sm w-auto rounded-2xl object-contain shadow-2xl"
+            />
+            {/* Card info below image */}
+            <div className="mt-3 flex items-center justify-center gap-2 sm:gap-3 text-white/70 text-[12px] sm:text-[13px] flex-wrap">
+              <span className="font-medium text-white/90">
+                {lightbox.resolved_city_name || lightbox.city}
+              </span>
+              {lightbox.weather_icon && (
+                <span>{lightbox.weather_icon} {lightbox.weather_condition}</span>
+              )}
+              {lightbox.temp_min != null && lightbox.temp_max != null && (
+                <span>{lightbox.temp_min}° / {lightbox.temp_max}°</span>
+              )}
+              <span>{lightbox.weather_date}</span>
+            </div>
+          </div>
         </div>
       )}
     </>

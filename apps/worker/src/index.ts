@@ -1,3 +1,4 @@
+// Weather Card Worker — card generation engine
 import { GenerateCardWorkflow } from './workflow';
 
 interface Env {

@@ -1,22 +1,23 @@
 @import 'tailwindcss';
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700&family=Noto+Serif+SC:wght@400;600&display=swap');
 
 @theme {
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Work Sans', sans-serif;
-  --color-surface: #FAFAFA;
+  --font-heading: 'Bricolage Grotesque', sans-serif;
+  --font-body: 'Bricolage Grotesque', sans-serif;
+  --font-serif: 'Noto Serif SC', serif;
+  --color-surface: #FAF9F6;
   --color-surface-raised: #FFFFFF;
-  --color-surface-dim: #F0F0F0;
-  --color-ink: #09090B;
-  --color-ink-muted: #71717A;
-  --color-ink-faint: #A1A1AA;
-  --color-accent: #F59E0B;
-  --color-accent-soft: #FEF3C7;
-  --color-border: #E4E4E7;
-  --color-border-dim: #F4F4F5;
-  --color-success: #10B981;
-  --color-error: #EF4444;
-  --color-warning: #F59E0B;
+  --color-surface-dim: #F0EDE8;
+  --color-ink: #1C1917;
+  --color-ink-muted: #78716C;
+  --color-ink-faint: #A8A29E;
+  --color-accent: #E67E22;
+  --color-accent-soft: #FEF3E2;
+  --color-border: #E7E5E4;
+  --color-border-dim: #F5F5F4;
+  --color-success: #16A34A;
+  --color-error: #DC2626;
+  --color-warning: #D97706;
 }
 
 html {
@@ -31,27 +32,33 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Subtle grain texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.3;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
 /* Card entrance animation */
 @keyframes card-rise {
   from {
     opacity: 0;
-    transform: translateY(48px) scale(0.92);
-    filter: blur(6px);
-  }
-  60% {
-    filter: blur(0);
+    transform: translateY(40px) scale(0.95);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0);
   }
 }
 
 @keyframes fade-in-up {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -59,21 +66,35 @@ body {
   }
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
 .card-rise {
-  animation: card-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: card-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .fade-in-up {
-  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.fade-in {
+  animation: fade-in 0.4s ease both;
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #f4f4f5 25%, #e4e4e7 50%, #f4f4f5 75%);
+  background: linear-gradient(90deg, #F5F5F4 25%, #E7E5E4 50%, #F5F5F4 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -81,11 +102,11 @@ body {
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .card-rise,
-  .fade-in-up {
+  .fade-in-up,
+  .fade-in {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
-    filter: none !important;
   }
   .skeleton {
     animation: none;
@@ -100,9 +121,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D4D4D8;
+  background: #D6D3D1;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #A1A1AA;
+  background: #A8A29E;
 }
