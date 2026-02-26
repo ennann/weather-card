@@ -11,6 +11,7 @@ interface Card {
   temp_max: number | null;
   current_temp: number | null;
   image_r2_key: string | null;
+  image_token?: string;
   created_at: string;
 }
 
@@ -72,7 +73,8 @@ export default function Gallery() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  const imageUrl = (key: string) => `/api/images/${key}`;
+  const imageUrl = (key: string, token?: string) =>
+    token ? `/api/images/${key}?t=${encodeURIComponent(token)}` : `/api/images/${key}`;
 
   const hasMore = cards.length > 0 && cards.length < total;
 
@@ -120,7 +122,7 @@ export default function Gallery() {
             <div className="relative overflow-hidden rounded-xl bg-surface-raised shadow-sm ring-1 ring-border/40 transition-all duration-300 ease-out group-hover:shadow-lg group-hover:shadow-ink/5 group-hover:-translate-y-0.5 group-hover:ring-border">
               {card.image_r2_key && (
                 <img
-                  src={imageUrl(card.image_r2_key)}
+                  src={imageUrl(card.image_r2_key, card.image_token)}
                   alt={`${card.city} weather card`}
                   className="block w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]"
                   loading="lazy"
@@ -175,7 +177,7 @@ export default function Gallery() {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={imageUrl(lightbox.image_r2_key)}
+              src={imageUrl(lightbox.image_r2_key, lightbox.image_token)}
               alt={`${lightbox.city} weather card`}
               className="max-h-[78vh] max-w-[88vw] sm:max-w-sm w-auto rounded-2xl object-contain shadow-2xl cursor-zoom-out"
               onClick={() => setLightbox(null)}
