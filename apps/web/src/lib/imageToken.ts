@@ -9,11 +9,15 @@
  * local development still works without protection enabled.
  */
 
-const EXPIRY_SECONDS = 86_400; // 24 hours
+const DEFAULT_EXPIRY_SECONDS = 86_400; // 24 hours (public API)
 
 /** Create a time-limited signed token for an R2 image key. */
-export async function createToken(key: string, secret: string): Promise<string> {
-  const expiry = Math.floor(Date.now() / 1000) + EXPIRY_SECONDS;
+export async function createToken(
+  key: string,
+  secret: string,
+  expirySeconds = DEFAULT_EXPIRY_SECONDS,
+): Promise<string> {
+  const expiry = Math.floor(Date.now() / 1000) + expirySeconds;
   const sig = await hmacSign(`${key}:${expiry}`, secret);
   return `${expiry}.${sig}`;
 }
