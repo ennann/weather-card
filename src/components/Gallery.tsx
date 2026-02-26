@@ -48,7 +48,7 @@ export default function Gallery() {
           fetchCards(next);
         }
       },
-      { rootMargin: '200px' }
+      { rootMargin: '400px' }
     );
     observer.observe(sentinel.current);
     return () => observer.disconnect();
@@ -56,48 +56,59 @@ export default function Gallery() {
 
   const imageUrl = (key: string) => `/api/images/${encodeURIComponent(key)}`;
 
+  // Empty state
   if (!loading && cards.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 text-neutral-500">
-        <div className="text-6xl mb-4">🌤</div>
-        <p className="font-display text-2xl italic text-neutral-400">No cards yet</p>
-        <p className="mt-2 text-sm">Cards will appear here after the daily generation runs.</p>
+      <div className="flex flex-col items-center justify-center py-40">
+        <div className="mb-6 rounded-2xl bg-accent-soft p-5">
+          <svg className="h-10 w-10 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+          </svg>
+        </div>
+        <p className="font-heading text-xl font-semibold text-ink">No cards yet</p>
+        <p className="mt-2 text-sm text-ink-muted">
+          Cards will appear here after the daily generation runs.
+        </p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4">
+      {/* Masonry grid */}
+      <div className="columns-2 gap-3 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
         {cards.map((card, i) => (
           <div
             key={card.run_id}
-            className="card-animate mb-4 break-inside-avoid cursor-pointer group"
-            style={{ animationDelay: `${(i % 8) * 60}ms` }}
+            className="card-rise mb-3 break-inside-avoid cursor-pointer group"
+            style={{ animationDelay: `${(i % 10) * 80}ms` }}
             onClick={() => card.image_r2_key && setLightbox(imageUrl(card.image_r2_key))}
           >
-            <div className="relative overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-neutral-800/50 transition-all duration-300 group-hover:ring-accent/30 group-hover:shadow-lg group-hover:shadow-accent/5">
+            <div className="relative overflow-hidden rounded-2xl bg-surface-raised shadow-sm ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:shadow-xl group-hover:shadow-accent/8 group-hover:-translate-y-1 group-hover:ring-accent/30">
               {card.image_r2_key && (
                 <img
                   src={imageUrl(card.image_r2_key)}
                   alt={`${card.city} weather card`}
-                  className="w-full transition-transform duration-500 group-hover:scale-[1.02]"
+                  className="w-full transition-transform duration-500 ease-out group-hover:scale-[1.03]"
                   loading="lazy"
                 />
               )}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12">
+              {/* Info overlay on hover */}
+              <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-white/95 via-white/80 to-transparent p-3 pt-10 transition-transform duration-300 ease-out group-hover:translate-y-0">
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="font-display text-lg leading-tight text-white">
+                    <p className="font-heading text-sm font-semibold text-ink leading-tight">
                       {card.resolved_city_name || card.city}
                     </p>
-                    <p className="mt-0.5 text-xs text-neutral-300">
+                    <p className="mt-0.5 text-xs text-ink-muted">
                       {card.weather_date}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl">{card.weather_icon}</span>
-                    <p className="text-xs text-neutral-300">
+                    <p className="text-xs font-medium text-ink">
+                      {card.weather_icon} {card.weather_condition}
+                    </p>
+                    <p className="text-xs text-ink-muted">
                       {card.temp_min}° / {card.temp_max}°
                     </p>
                   </div>
@@ -108,9 +119,17 @@ export default function Gallery() {
         ))}
       </div>
 
+      {/* Loading skeletons */}
       {loading && (
-        <div className="flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-700 border-t-accent" />
+        <div className="columns-2 gap-3 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 mt-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="mb-3 break-inside-avoid">
+              <div
+                className="skeleton rounded-2xl"
+                style={{ height: `${280 + (i % 3) * 80}px` }}
+              />
+            </div>
+          ))}
         </div>
       )}
 
@@ -119,13 +138,13 @@ export default function Gallery() {
       {/* Lightbox */}
       {lightbox && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-zoom-out"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md cursor-zoom-out transition-opacity duration-200"
           onClick={() => setLightbox(null)}
         >
           <img
             src={lightbox}
             alt="Full size card"
-            className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+            className="max-h-[92vh] max-w-[92vw] rounded-2xl object-contain shadow-2xl fade-in-up"
           />
         </div>
       )}
