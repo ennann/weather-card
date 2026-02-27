@@ -42,7 +42,7 @@ export default {
       }
     }
 
-    return new Response('Weather Card Worker', { status: 200 });
+    return new Response(null, { status: 404 });
   },
 };
 

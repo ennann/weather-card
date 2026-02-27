@@ -2,13 +2,27 @@
 export const prerender = false;
 import Base from '../layouts/Base.astro';
 import LogsTable from '../components/LogsTable';
+
+const url = new URL(Astro.request.url);
+const accessToken = url.searchParams.get('token') ?? '';
+const triggerToken: string = Astro.locals.runtime.env.TRIGGER_TOKEN ?? '';
+const authorized = !!triggerToken && accessToken === triggerToken;
 ---
 <Base title="Weather Card — Logs">
   <div class="mx-auto max-w-6xl px-5 pt-10 pb-6">
-    <div class="mb-8 fade-in-up">
-      <h1 class="font-heading text-2xl font-600 tracking-tight text-ink">生成日志</h1>
-      <p class="mt-1.5 text-[14px] text-ink-muted">每日卡片生成记录与运行状态</p>
-    </div>
-    <LogsTable client:load />
+    {authorized ? (
+      <>
+        <div class="mb-8 fade-in-up">
+          <h1 class="font-heading text-2xl font-600 tracking-tight text-ink">生成日志</h1>
+          <p class="mt-1.5 text-[14px] text-ink-muted">每日卡片生成记录与运行状态</p>
+        </div>
+        <LogsTable client:load token={accessToken} />
+      </>
+    ) : (
+      <div class="flex flex-col items-center justify-center py-32 fade-in-up">
+        <h1 class="text-xl font-600 text-ink mb-2">访问受限</h1>
+        <p class="text-sm text-ink-muted">请提供有效的 token 以查看日志</p>
+      </div>
+    )}
   </div>
 </Base>

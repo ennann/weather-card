@@ -9,10 +9,19 @@ export async function GET(context: APIContext) {
 
   if (!key) return new Response('Missing key', { status: 400 });
 
-  // Hotlink / Referer protection: if a Referer header is present it must come
-  // from the same host. This stops other websites from embedding our images.
-  const referer = context.request.headers.get('referer');
-  if (referer) {
+  // Trusted callers with INTERNAL_API_KEY bypass Referer checks.
+  const internalKey: string = env.INTERNAL_API_KEY ?? '';
+  const auth = context.request.headers.get('authorization') ?? '';
+  const isTrusted = !!(internalKey && auth === `Bearer ${internalKey}`);
+
+  if (!isTrusted) {
+    // Hotlink protection: require a same-origin Referer header.
+    // Requests without Referer (direct URL visits, curl, etc.) are blocked
+    // to prevent enumeration and unauthorized downloads.
+    const referer = context.request.headers.get('referer');
+    if (!referer) {
+      return new Response('Forbidden', { status: 403 });
+    }
     try {
       if (new URL(referer).host !== url.host) {
         return new Response('Forbidden', { status: 403 });

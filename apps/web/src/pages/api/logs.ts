@@ -1,16 +1,40 @@
 export const prerender = false;
 
+/**
+ * GET /api/logs
+ *
+ * Protected endpoint — requires Authorization: Bearer <TRIGGER_TOKEN>.
+ * Returns generation run history for the admin/logs page.
+ */
+
 import type { APIContext } from 'astro';
 
 export async function GET(context: APIContext) {
   const { env } = context.locals.runtime;
+
+  // ── Authentication ───────────────────────────────────────────────────────
+  const token: string = env.TRIGGER_TOKEN ?? '';
+  if (!token) {
+    return new Response('Not configured', { status: 503 });
+  }
+
+  const auth = context.request.headers.get('authorization') ?? '';
+  if (auth !== `Bearer ${token}`) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // ── Query parameters ─────────────────────────────────────────────────────
   const url = new URL(context.request.url);
-  const page = parseInt(url.searchParams.get('page') || '1');
-  const limit = Math.min(parseInt(url.searchParams.get('limit') || '30'), 100);
+  const page = Math.max(1, parseInt(url.searchParams.get('page') || '1') || 1);
+  const limit = Math.min(Math.max(1, parseInt(url.searchParams.get('limit') || '30') || 30), 100);
   const offset = (page - 1) * limit;
   const status = url.searchParams.get('status');
 
-  let query = `SELECT * FROM generation_runs`;
+  const FIELDS = `run_id, city, resolved_city_name, weather_date, weather_condition,
+                  weather_icon, temp_min, temp_max, current_temp, model, image_r2_key,
+                  status, error_message, duration_ms, created_at, updated_at`;
+
+  let query = `SELECT ${FIELDS} FROM generation_runs`;
   const binds: any[] = [];
 
   if (status) {

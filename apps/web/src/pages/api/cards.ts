@@ -5,8 +5,8 @@ import type { APIContext } from 'astro';
 export async function GET(context: APIContext) {
   const { env } = context.locals.runtime;
   const url = new URL(context.request.url);
-  const page = parseInt(url.searchParams.get('page') || '1');
-  const limit = Math.min(parseInt(url.searchParams.get('limit') || '20'), 50);
+  const page = Math.max(1, parseInt(url.searchParams.get('page') || '1') || 1);
+  const limit = Math.min(Math.max(1, parseInt(url.searchParams.get('limit') || '20') || 20), 50);
   const offset = (page - 1) * limit;
 
   const { results } = await env.DB.prepare(

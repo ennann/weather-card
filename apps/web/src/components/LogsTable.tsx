@@ -32,7 +32,7 @@ function formatTime(iso: string): string {
   });
 }
 
-export default function LogsTable() {
+export default function LogsTable({ token }: { token: string }) {
   const [logs, setLogs] = useState<GenerationRun[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -47,14 +47,21 @@ export default function LogsTable() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(limit) });
       if (status) params.set('status', status);
-      const res = await fetch(`/api/logs?${params}`);
+      const res = await fetch(`/api/logs?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        setLogs([]);
+        setTotal(0);
+        return;
+      }
       const data = (await res.json()) as { logs: GenerationRun[]; total: number };
       setLogs(data.logs);
       setTotal(data.total);
     } finally {
       setLoading(false);
     }
-  }, [page, status, limit]);
+  }, [page, status, limit, token]);
 
   useEffect(() => {
     fetchLogs();
