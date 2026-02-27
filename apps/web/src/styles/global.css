@@ -127,3 +127,13 @@ body::before {
 ::-webkit-scrollbar-thumb:hover {
   background: #A8A29E;
 }
+
+/* Hide scrollbar on home page while preserving scroll behavior */
+body.home-hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body.home-hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
