@@ -169,7 +169,7 @@ export default function Gallery() {
       {/* Lightbox */}
       {lightbox && lightbox.image_r2_key && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-lg cursor-zoom-out fade-in"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-surface backdrop-blur-none sm:bg-transparent sm:backdrop-blur-lg cursor-zoom-out fade-in"
           onClick={() => setLightbox(null)}
         >
           <div

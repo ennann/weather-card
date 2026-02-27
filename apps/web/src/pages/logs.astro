@@ -1,28 +1,65 @@
 ---
 export const prerender = false;
-import Base from '../layouts/Base.astro';
-import LogsTable from '../components/LogsTable';
+import Base from "../layouts/Base.astro";
+import LogsTable from "../components/LogsTable";
 
 const url = new URL(Astro.request.url);
-const accessToken = url.searchParams.get('token') ?? '';
-const triggerToken: string = Astro.locals.runtime.env.TRIGGER_TOKEN ?? '';
+const accessToken = url.searchParams.get("token") ?? "";
+const triggerToken: string = Astro.locals.runtime.env.TRIGGER_TOKEN ?? "";
 const authorized = !!triggerToken && accessToken === triggerToken;
 ---
+
 <Base title="Weather Card — Logs">
-  <div class="mx-auto max-w-6xl px-5 pt-10 pb-6">
-    {authorized ? (
-      <>
-        <div class="mb-8 fade-in-up">
-          <h1 class="font-heading text-2xl font-600 tracking-tight text-ink">生成日志</h1>
-          <p class="mt-1.5 text-[14px] text-ink-muted">每日卡片生成记录与运行状态</p>
-        </div>
-        <LogsTable client:load token={accessToken} />
-      </>
-    ) : (
-      <div class="flex flex-col items-center justify-center py-32 fade-in-up">
-        <h1 class="text-xl font-600 text-ink mb-2">访问受限</h1>
-        <p class="text-sm text-ink-muted">请提供有效的 token 以查看日志</p>
-      </div>
-    )}
-  </div>
+    <div class="mx-auto max-w-6xl px-5 pt-10 pb-6">
+        {
+            authorized ? (
+                <>
+                    <div class="mb-8 fade-in-up">
+                        <h1 class="font-heading text-2xl font-600 tracking-tight text-ink">生成日志</h1>
+                        <p class="mt-1.5 text-[14px] text-ink-muted">每日卡片生成记录与运行状态</p>
+                    </div>
+                    <LogsTable client:load token={accessToken} />
+                </>
+            ) : (
+                <div class="flex flex-col items-center justify-center py-32 fade-in-up">
+                    <h1 class="text-xl font-600 text-ink mb-2">访问受限</h1>
+                    <p class="text-sm text-ink-muted">请提供有效的 Token 以查看日志</p>
+                    <div class="mt-6 flex flex-col sm:flex-row gap-2 w-full max-w-sm">
+                        <input
+                            id="token-input"
+                            type="password"
+                            placeholder="输入访问 Token"
+                            class="h-10 flex-1 min-w-0 rounded-lg border border-border bg-surface-dim px-3 text-[14px] text-ink placeholder:text-ink-faint outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/30"
+                        />
+                        <button
+                            id="btn-token-submit"
+                            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-ink px-4 text-[14px] font-500 whitespace-nowrap text-surface transition-all hover:bg-ink/85 active:scale-[.98]"
+                        >
+                            确认
+                        </button>
+                    </div>
+                </div>
+            )
+        }
+    </div>
 </Base>
+
+<script>
+    const tokenInput = document.getElementById("token-input") as HTMLInputElement;
+    const btnTokenSubmit = document.getElementById("btn-token-submit");
+
+    function submitToken() {
+        if (!tokenInput) return;
+        const val = tokenInput.value.trim();
+        if (val) {
+            const url = new URL(window.location.href);
+            url.searchParams.set("token", val);
+            window.location.href = url.toString();
+        }
+    }
+
+    btnTokenSubmit?.addEventListener("click", submitToken);
+    tokenInput?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") submitToken();
+    });
+</script>
