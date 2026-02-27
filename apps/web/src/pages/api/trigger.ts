@@ -4,7 +4,7 @@ export const prerender = false;
  * POST /api/trigger?city=杭州
  *
  * Proxies the request to the Worker's /trigger endpoint.
- * Requires `?key=<TRIGGER_TOKEN>` for authentication (used by the /create page).
+ * Requires `?token=<TRIGGER_TOKEN>` for authentication (used by the /create page).
  */
 
 import type { APIContext } from 'astro';
@@ -18,11 +18,11 @@ export async function POST(context: APIContext) {
     return new Response('Not configured', { status: 503 });
   }
 
-  // Validate the key from query string
+  // Validate the token from query string
   const url = new URL(context.request.url);
-  const key = url.searchParams.get('key') ?? '';
-  if (key !== token) {
-    return Response.json({ error: 'Invalid key' }, { status: 401 });
+  const providedToken = url.searchParams.get('token') ?? '';
+  if (providedToken !== token) {
+    return Response.json({ error: 'Invalid token' }, { status: 401 });
   }
 
   // Forward city param to Worker

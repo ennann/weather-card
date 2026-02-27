@@ -4,9 +4,9 @@ import Base from '../layouts/Base.astro';
 import citiesData from '../../../worker/data/cities.json';
 
 const url = new URL(Astro.request.url);
-const key = url.searchParams.get('key') ?? '';
-const token: string = Astro.locals.runtime.env.TRIGGER_TOKEN ?? '';
-const authorized = !!token && key === token;
+const accessToken = url.searchParams.get('token') ?? '';
+const triggerToken: string = Astro.locals.runtime.env.TRIGGER_TOKEN ?? '';
+const authorized = !!triggerToken && accessToken === triggerToken;
 
 type CitiesJson = {
   cities: Record<string, string[]>;
@@ -159,7 +159,7 @@ const totalGenerated = groupStats.reduce((sum, group) => sum + group.generatedCo
 </Base>
 )}
 
-<script define:vars={{ key }}>
+<script define:vars={{ accessToken }}>
   if (!document.getElementById('btn-submit')) throw new Error('unauthorized');
 
   const cityInput = document.getElementById('city-input');
@@ -213,7 +213,7 @@ const totalGenerated = groupStats.reduce((sum, group) => sum + group.generatedCo
     resultDiv.textContent = '正在触发生成…';
 
     try {
-      const params = new URLSearchParams({ key });
+      const params = new URLSearchParams({ token: accessToken });
       if (city) params.set('city', city);
 
       const resp = await fetch(`/api/trigger?${params}`, { method: 'POST' });

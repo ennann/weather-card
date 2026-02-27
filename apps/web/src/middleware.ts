@@ -64,7 +64,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!pathname.startsWith('/api/')) return next();
 
   // Trusted internal callers present a Bearer token — skip rate limiting.
-  // The endpoint itself validates the key; here we only need to decide
+  // The endpoint itself validates the token; here we only need to decide
   // whether to apply the rate limiter.
   const internalKey: string = context.locals.runtime?.env?.INTERNAL_API_KEY ?? '';
   const auth = context.request.headers.get('authorization') ?? '';
