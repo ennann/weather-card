@@ -203,7 +203,7 @@ export default function LogsTable() {
                           <img
                             src={`/api/images/${log.image_r2_key}`}
                             alt=""
-                            className="h-10 w-7 rounded-md object-cover ring-1 ring-border transition-all duration-200"
+                            className="h-10 w-7 rounded-md object-cover transition-all duration-200"
                             loading="lazy"
                           />
                         </button>
