@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-26T00:00:00.000Z",
+  "generatedAt": "2026-02-27T00:00:00.000Z",
   "source": "GaWC 2024 + China prefecture-level cities",
   "cities": {
     "中国": [
@@ -46,7 +46,7 @@
       "Lahore", "Karachi", "Islamabad", "Colombo", "Dhaka", "Kathmandu"
     ],
     "中东": [
-      "Dubai", "Abu Dhabi", "Doha", "Istanbul", "Riyadh", "Jeddah", "Tel Aviv", "Amman",
+      "Dubai", "Abu Dhabi", "Doha", "Istanbul", "Ankara", "Riyadh", "Jeddah", "Tel Aviv", "Amman",
       "Kuwait City", "Muscat", "Manama", "Beirut"
     ],
     "欧洲": [
@@ -73,13 +73,13 @@
       "Moscow", "Saint Petersburg",
       "Bucharest", "Sofia", "Belgrade", "Zagreb", "Ljubljana", "Bratislava",
       "Riga", "Tallinn", "Vilnius",
-      "Tbilisi", "Yerevan", "Baku",
+      "Tbilisi", "Yerevan", "Baku", "Kyiv",
       "Tirana", "Skopje", "Sarajevo", "Podgorica"
     ],
     "北美": [
-      "New York", "Los Angeles", "San Francisco", "Seattle", "Chicago", "Boston", "Miami",
+      "New York", "Manhattan", "Brooklyn", "Queens", "Los Angeles", "San Francisco", "Seattle", "Chicago", "Boston", "Miami",
       "Las Vegas", "Washington DC", "Houston", "Dallas", "Atlanta", "Denver", "Phoenix",
-      "San Diego", "Minneapolis", "Philadelphia", "Austin", "Portland", "Nashville",
+      "San Diego", "San Jose", "Minneapolis", "Philadelphia", "Austin", "Portland", "Nashville", "New Orleans", "Orlando",
       "Tampa", "Charlotte", "Detroit", "Pittsburgh", "Cleveland", "Baltimore", "Raleigh",
       "Salt Lake City", "Indianapolis", "Columbus", "Cincinnati", "Kansas City",
       "Toronto", "Vancouver", "Montreal", "Calgary", "Ottawa", "Edmonton", "Winnipeg",
@@ -91,12 +91,12 @@
       "Curitiba", "Porto Alegre", "Brasília", "Belo Horizonte", "Asunción", "La Paz"
     ],
     "大洋洲": [
-      "Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Canberra",
+      "Sydney", "Melbourne", "Brisbane", "Gold Coast", "Perth", "Adelaide", "Canberra",
       "Auckland", "Wellington", "Christchurch"
     ],
     "非洲": [
       "Cairo", "Cape Town", "Johannesburg", "Nairobi", "Lagos", "Casablanca",
-      "Accra", "Dar es Salaam", "Kampala", "Durban", "Dakar", "Abuja",
+      "Accra", "Dar es Salaam", "Kampala", "Addis Ababa", "Durban", "Dakar", "Abuja",
       "Luanda", "Abidjan", "Algiers", "Tunis", "Lusaka", "Harare", "Maputo", "Windhoek"
     ]
   }
