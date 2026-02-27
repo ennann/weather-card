@@ -69,11 +69,24 @@ const { title = 'Weather Card' } = Astro.props;
 
 <script>
   const header = document.getElementById('site-header');
+  const desktopMedia = window.matchMedia('(min-width: 1024px)');
   let lastScrollY = window.scrollY;
   let ticking = false;
 
+  function isDesktop() {
+    return desktopMedia.matches;
+  }
+
   function updateHeader() {
     const currentScrollY = window.scrollY;
+
+    if (isDesktop()) {
+      // PC 端始终显示 header，不做滚动隐藏
+      header?.classList.remove('-translate-y-full');
+      lastScrollY = currentScrollY;
+      ticking = false;
+      return;
+    }
 
     if (currentScrollY > 60) {
       if (currentScrollY > lastScrollY) {
@@ -98,4 +111,8 @@ const { title = 'Weather Card' } = Astro.props;
       ticking = true;
     }
   }, { passive: true });
+
+  window.addEventListener('resize', updateHeader, { passive: true });
+  desktopMedia.addEventListener?.('change', updateHeader);
+  updateHeader();
 </script>

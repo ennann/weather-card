@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
 import type { GenerationRun } from '../lib/types';
 
 const STATUS_TABS = [
@@ -40,7 +40,7 @@ export default function LogsTable() {
   const [limit, setLimit] = useState(10);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [zoomedImageRunId, setZoomedImageRunId] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -59,6 +59,14 @@ export default function LogsTable() {
   useEffect(() => {
     fetchLogs();
   }, [fetchLogs]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxImage(null);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
@@ -140,9 +148,8 @@ export default function LogsTable() {
               </tr>
             ) : (
               logs.map((log) => (
-                <>
+                <Fragment key={log.run_id}>
                   <tr
-                    key={log.run_id}
                     className="cursor-pointer border-b border-border-dim transition-colors duration-150 hover:bg-surface-dim/50"
                     onClick={() => setExpanded(expanded === log.run_id ? null : log.run_id)}
                   >
@@ -185,17 +192,18 @@ export default function LogsTable() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setZoomedImageRunId(zoomedImageRunId === log.run_id ? null : log.run_id);
+                            setLightboxImage({
+                              src: `/api/images/${log.image_r2_key}`,
+                              alt: `${log.resolved_city_name || log.city} weather card`,
+                            });
                           }}
                           className="cursor-zoom-in"
-                          title={zoomedImageRunId === log.run_id ? '点击缩小' : '点击放大'}
+                          title="点击放大"
                         >
                           <img
                             src={`/api/images/${log.image_r2_key}`}
                             alt=""
-                            className={`rounded-md object-cover ring-1 ring-border transition-all duration-200 ${
-                              zoomedImageRunId === log.run_id ? 'h-28 w-20 shadow-lg' : 'h-10 w-7'
-                            }`}
+                            className="h-10 w-7 rounded-md object-cover ring-1 ring-border transition-all duration-200"
                             loading="lazy"
                           />
                         </button>
@@ -204,16 +212,15 @@ export default function LogsTable() {
                       )}
                     </td>
                   </tr>
-                  {/* Expanded error row */}
                   {expanded === log.run_id && log.error_message && (
-                    <tr key={`${log.run_id}-err`}>
+                    <tr>
                       <td colSpan={9} className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm">
                         <span className="font-medium text-red-700">Error: </span>
                         <span className="text-red-600">{log.error_message}</span>
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))
             )}
           </tbody>
@@ -254,6 +261,20 @@ export default function LogsTable() {
           </button>
         </div>
       </div>
+
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[100] flex cursor-zoom-out items-center justify-center bg-black/55 px-4 backdrop-blur-sm fade-in"
+          onClick={() => setLightboxImage(null)}
+        >
+          <img
+            src={lightboxImage.src}
+            alt={lightboxImage.alt}
+            className="max-h-[90vh] max-w-[94vw] rounded-2xl object-contain shadow-2xl cursor-zoom-out fade-in-up"
+            onClick={() => setLightboxImage(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }
