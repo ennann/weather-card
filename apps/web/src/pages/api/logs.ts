@@ -3,23 +3,24 @@ export const prerender = false;
 /**
  * GET /api/logs
  *
- * Protected endpoint — requires Authorization: Bearer <TRIGGER_TOKEN>.
+ * Protected endpoint — requires Authorization: Bearer <ACCESS_CODE>.
  * Returns generation run history for the admin/logs page.
  */
 
 import type { APIContext } from 'astro';
+import { getTokenFromRequest } from '../../lib/auth';
 
 export async function GET(context: APIContext) {
   const { env } = context.locals.runtime;
 
   // ── Authentication ───────────────────────────────────────────────────────
-  const token: string = env.TRIGGER_TOKEN ?? '';
+  const token: string = env.ACCESS_CODE ?? '';
   if (!token) {
     return new Response('Not configured', { status: 503 });
   }
 
-  const auth = context.request.headers.get('authorization') ?? '';
-  if (auth !== `Bearer ${token}`) {
+  const provided = getTokenFromRequest(context.request);
+  if (provided !== token) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

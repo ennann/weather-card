@@ -46,10 +46,10 @@ flowchart LR
 
 ### 3.2 手动触发链路
 
-1. 管理员访问 `/create?token=<TRIGGER_TOKEN>`。
-2. 页面调用 `POST /api/trigger`（Pages 侧 API）。
-3. Pages API 读取 `WORKER_URL`，转发请求到 Worker `/trigger`，并在请求头加 `Authorization: Bearer <TRIGGER_TOKEN>`。
-4. Worker 校验 `TRIGGER_TOKEN` 后创建 Workflow 实例执行。
+1. 管理员访问 `/create`，输入密码后通过 cookie 认证。
+2. 页面调用 `POST /api/trigger`（Pages 侧 API，cookie 自动携带）。
+3. Pages API 读取 `WORKER_URL`，转发请求到 Worker `/trigger`，并在请求头加 `Authorization: Bearer <ACCESS_CODE>`。
+4. Worker 校验 `ACCESS_CODE` 后创建 Workflow 实例执行。
 
 ### 3.3 前台展示链路
 
@@ -74,7 +74,7 @@ flowchart LR
 
 ## 5. 安全与边界
 
-- `TRIGGER_TOKEN` 控制手动触发入口（Worker `/trigger` 与 Pages `/create`、`/api/trigger` 一致）。
+- `ACCESS_CODE` 控制管理页面与手动触发入口（Worker `/trigger` 与 Pages `/create`、`/api/trigger` 一致）。
 - `INTERNAL_API_KEY` 保护 `/api/internal/cards`。
 - Pages `middleware` 对 `/api/*` 做 IP 级限流；带内部 `Bearer` 的请求可跳过限流。
 - `/api/images/*` 含 Referer 同源校验，降低外站盗链风险。

@@ -6,7 +6,7 @@ interface Env {
   BUCKET: R2Bucket;
   GENERATE_CARD: Workflow;
   GEMINI_API_KEY: string;
-  TRIGGER_TOKEN: string;
+  ACCESS_CODE: string;
 }
 
 export default {
@@ -25,7 +25,7 @@ export default {
     // Manual trigger: POST /trigger?city=杭州
     if (url.pathname === '/trigger' && request.method === 'POST') {
       const auth = request.headers.get('Authorization');
-      if (!auth || auth !== `Bearer ${env.TRIGGER_TOKEN}`) {
+      if (!auth || auth !== `Bearer ${env.ACCESS_CODE}`) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
       }
       try {

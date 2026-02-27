@@ -2,11 +2,11 @@
 export const prerender = false;
 import Base from "../layouts/Base.astro";
 import LogsTable from "../components/LogsTable";
+import { getTokenFromCookie } from "../lib/auth";
 
-const url = new URL(Astro.request.url);
-const accessToken = url.searchParams.get("token") ?? "";
-const triggerToken: string = Astro.locals.runtime.env.TRIGGER_TOKEN ?? "";
-const authorized = !!triggerToken && accessToken === triggerToken;
+const accessCode: string = Astro.locals.runtime.env.ACCESS_CODE ?? "";
+const cookieToken = getTokenFromCookie(Astro.request);
+const authorized = !!accessCode && cookieToken === accessCode;
 ---
 
 <Base title="Weather Card — Logs">
@@ -18,17 +18,17 @@ const authorized = !!triggerToken && accessToken === triggerToken;
                         <h1 class="font-heading text-2xl font-600 tracking-tight text-ink">生成日志</h1>
                         <p class="mt-1.5 text-[14px] text-ink-muted">每日卡片生成记录与运行状态</p>
                     </div>
-                    <LogsTable client:load token={accessToken} />
+                    <LogsTable client:load />
                 </>
             ) : (
                 <div class="flex flex-col items-center justify-center py-32 fade-in-up">
                     <h1 class="text-xl font-600 text-ink mb-2">访问受限</h1>
-                    <p class="text-sm text-ink-muted">请提供有效的 Token 以查看日志</p>
-                    <div class="mt-6 flex flex-col sm:flex-row gap-2 w-full max-w-sm">
+                    <p class="text-sm text-ink-muted mb-6">请输入密码以查看日志</p>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full max-w-sm">
                         <input
                             id="token-input"
                             type="password"
-                            placeholder="输入访问 Token"
+                            placeholder="输入访问密码"
                             class="h-10 flex-1 min-w-0 rounded-lg border border-border bg-surface-dim px-3 text-[14px] text-ink placeholder:text-ink-faint outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/30"
                         />
                         <button
@@ -38,6 +38,7 @@ const authorized = !!triggerToken && accessToken === triggerToken;
                             确认
                         </button>
                     </div>
+                    <p id="auth-error" class="mt-3 text-sm text-red-500 hidden"></p>
                 </div>
             )
         }
@@ -47,14 +48,36 @@ const authorized = !!triggerToken && accessToken === triggerToken;
 <script>
     const tokenInput = document.getElementById("token-input") as HTMLInputElement;
     const btnTokenSubmit = document.getElementById("btn-token-submit");
+    const authError = document.getElementById("auth-error");
 
-    function submitToken() {
+    async function submitToken() {
         if (!tokenInput) return;
         const val = tokenInput.value.trim();
-        if (val) {
-            const url = new URL(window.location.href);
-            url.searchParams.set("token", val);
-            window.location.href = url.toString();
+        if (!val) return;
+
+        btnTokenSubmit?.setAttribute("disabled", "");
+        try {
+            const res = await fetch("/api/auth", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: val }),
+            });
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                const data = await res.json().catch(() => ({}));
+                if (authError) {
+                    authError.textContent = data.error || "认证失败";
+                    authError.classList.remove("hidden");
+                }
+            }
+        } catch {
+            if (authError) {
+                authError.textContent = "网络错误";
+                authError.classList.remove("hidden");
+            }
+        } finally {
+            btnTokenSubmit?.removeAttribute("disabled");
         }
     }
 

@@ -2,11 +2,11 @@
 export const prerender = false;
 import Base from "../layouts/Base.astro";
 import citiesData from "../../../worker/data/cities.json";
+import { getTokenFromCookie } from "../lib/auth";
 
-const url = new URL(Astro.request.url);
-const accessToken = url.searchParams.get("token") ?? "";
-const triggerToken: string = Astro.locals.runtime.env.TRIGGER_TOKEN ?? "";
-const authorized = !!triggerToken && accessToken === triggerToken;
+const accessCode: string = Astro.locals.runtime.env.ACCESS_CODE ?? "";
+const cookieToken = getTokenFromCookie(Astro.request);
+const authorized = !!accessCode && cookieToken === accessCode;
 
 type CitiesJson = {
     cities: Record<string, string[]>;
@@ -161,7 +161,7 @@ const totalGenerated = groupStats.reduce((sum, group) => sum + group.generatedCo
                     <input
                         id="create-token-input"
                         type="password"
-                        placeholder="输入访问 Token"
+                        placeholder="输入访问密码"
                         class="h-10 flex-1 min-w-0 rounded-lg border border-border bg-surface-dim px-3 text-[14px] text-ink placeholder:text-ink-faint outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/30"
                     />
                     <button
@@ -171,6 +171,7 @@ const totalGenerated = groupStats.reduce((sum, group) => sum + group.generatedCo
                         确认
                     </button>
                 </div>
+                <p id="auth-error" class="mt-3 text-sm text-red-500 hidden"></p>
             </div>
         </Base>
     )
@@ -179,14 +180,36 @@ const totalGenerated = groupStats.reduce((sum, group) => sum + group.generatedCo
 <script>
     const tokenInput = document.getElementById("create-token-input") as HTMLInputElement;
     const btnTokenSubmit = document.getElementById("btn-create-token-submit");
+    const authError = document.getElementById("auth-error");
 
-    function submitToken() {
+    async function submitToken() {
         if (!tokenInput) return;
         const val = tokenInput.value.trim();
-        if (val) {
-            const url = new URL(window.location.href);
-            url.searchParams.set("token", val);
-            window.location.href = url.toString();
+        if (!val) return;
+
+        btnTokenSubmit?.setAttribute("disabled", "");
+        try {
+            const res = await fetch("/api/auth", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: val }),
+            });
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                const data = await res.json().catch(() => ({}));
+                if (authError) {
+                    authError.textContent = data.error || "认证失败";
+                    authError.classList.remove("hidden");
+                }
+            }
+        } catch {
+            if (authError) {
+                authError.textContent = "网络错误";
+                authError.classList.remove("hidden");
+            }
+        } finally {
+            btnTokenSubmit?.removeAttribute("disabled");
         }
     }
 
@@ -196,7 +219,7 @@ const totalGenerated = groupStats.reduce((sum, group) => sum + group.generatedCo
     });
 </script>
 
-<script define:vars={{ accessToken }}>
+<script>
     if (!document.getElementById("btn-submit")) throw new Error("unauthorized");
 
     const cityInput = document.getElementById("city-input");
@@ -250,7 +273,7 @@ const totalGenerated = groupStats.reduce((sum, group) => sum + group.generatedCo
         resultDiv.textContent = "正在触发生成…";
 
         try {
-            const params = new URLSearchParams({ token: accessToken });
+            const params = new URLSearchParams();
             if (city) params.set("city", city);
 
             const resp = await fetch(`/api/trigger?${params}`, { method: "POST" });
