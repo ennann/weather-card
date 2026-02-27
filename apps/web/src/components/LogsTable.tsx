@@ -197,7 +197,7 @@ export default function LogsTable() {
                               alt: `${log.resolved_city_name || log.city} weather card`,
                             });
                           }}
-                          className="cursor-zoom-in"
+                          className="cursor-zoom-in appearance-none border-0 bg-transparent p-0 outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0"
                           title="点击放大"
                         >
                           <img
