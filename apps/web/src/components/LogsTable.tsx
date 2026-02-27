@@ -40,6 +40,7 @@ export default function LogsTable() {
   const [limit, setLimit] = useState(10);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [zoomedImageRunId, setZoomedImageRunId] = useState<string | null>(null);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -99,10 +100,10 @@ export default function LogsTable() {
           <colgroup>
             <col className="w-32" />
             <col className="w-64" />
-            <col className="w-36" />
+            <col className="w-40" />
             <col className="w-28" />
-            <col className="w-28" />
-            <col className="w-24" />
+            <col className="w-[6.5rem]" />
+            <col className="w-[5.5rem]" />
             <col className="w-24" />
             <col className="w-24" />
             <col className="w-20" />
@@ -180,12 +181,24 @@ export default function LogsTable() {
                     </td>
                     <td className="px-4 py-3">
                       {log.image_r2_key ? (
-                        <img
-                          src={`/api/images/${log.image_r2_key}`}
-                          alt=""
-                          className="h-10 w-7 rounded-md object-cover ring-1 ring-border"
-                          loading="lazy"
-                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setZoomedImageRunId(zoomedImageRunId === log.run_id ? null : log.run_id);
+                          }}
+                          className="cursor-zoom-in"
+                          title={zoomedImageRunId === log.run_id ? '点击缩小' : '点击放大'}
+                        >
+                          <img
+                            src={`/api/images/${log.image_r2_key}`}
+                            alt=""
+                            className={`rounded-md object-cover ring-1 ring-border transition-all duration-200 ${
+                              zoomedImageRunId === log.run_id ? 'h-28 w-20 shadow-lg' : 'h-10 w-7'
+                            }`}
+                            loading="lazy"
+                          />
+                        </button>
                       ) : (
                         <span className="text-ink-faint">—</span>
                       )}
