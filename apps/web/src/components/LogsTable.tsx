@@ -69,7 +69,7 @@ export default function LogsTable() {
             <button
               key={tab.value}
               onClick={() => { setStatus(tab.value); setPage(1); }}
-              className={`cursor-pointer rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
+              className={`h-9 cursor-pointer rounded-lg px-3.5 text-sm font-medium transition-all duration-200 ${
                 status === tab.value
                   ? 'bg-ink text-white shadow-sm'
                   : 'text-ink-muted hover:text-ink hover:bg-surface-dim'
@@ -82,7 +82,7 @@ export default function LogsTable() {
         <button
           onClick={() => fetchLogs()}
           disabled={loading}
-          className="cursor-pointer inline-flex items-center justify-center w-8 h-8 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-dim transition-all disabled:opacity-30"
+          className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-ink-muted transition-all hover:bg-surface-dim hover:text-ink disabled:opacity-30"
           title="刷新"
         >
           <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -94,10 +94,22 @@ export default function LogsTable() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-border bg-surface-raised shadow-sm">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className="w-32" />
+            <col className="w-44" />
+            <col className="w-36" />
+            <col />
+            <col className="w-28" />
+            <col className="w-24" />
+            <col className="w-24" />
+            <col className="w-24" />
+            <col className="w-20" />
+          </colgroup>
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-ink-faint">
               <th className="px-4 py-3 font-medium">Run ID</th>
+              <th className="px-4 py-3 font-medium">Model</th>
               <th className="px-4 py-3 font-medium">Time</th>
               <th className="px-4 py-3 font-medium">City</th>
               <th className="px-4 py-3 font-medium">Weather</th>
@@ -111,7 +123,7 @@ export default function LogsTable() {
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-border-dim">
-                  {Array.from({ length: 8 }).map((_, j) => (
+                  {Array.from({ length: 9 }).map((_, j) => (
                     <td key={j} className="px-4 py-3.5">
                       <div className="skeleton h-4 w-16 rounded" />
                     </td>
@@ -120,7 +132,7 @@ export default function LogsTable() {
               ))
             ) : logs.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-16 text-center text-ink-muted">
+                <td colSpan={9} className="px-4 py-16 text-center text-ink-muted">
                   No logs found
                 </td>
               </tr>
@@ -132,8 +144,15 @@ export default function LogsTable() {
                     className="cursor-pointer border-b border-border-dim transition-colors duration-150 hover:bg-surface-dim/50"
                     onClick={() => setExpanded(expanded === log.run_id ? null : log.run_id)}
                   >
-                    <td className="px-4 py-3 whitespace-nowrap text-ink-faint font-mono text-xs">
-                      {log.run_id}
+                    <td className="px-4 py-3 text-xs font-mono text-ink-faint">
+                      <span className="block truncate" title={log.run_id}>
+                        {log.run_id}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-ink-muted">
+                      <span className="block truncate" title={log.model ?? ''}>
+                        {log.model || '—'}
+                      </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-ink-muted tabular-nums">
                       {formatTime(log.created_at)}
@@ -172,7 +191,7 @@ export default function LogsTable() {
                   {/* Expanded error row */}
                   {expanded === log.run_id && log.error_message && (
                     <tr key={`${log.run_id}-err`}>
-                      <td colSpan={8} className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm">
+                      <td colSpan={9} className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm">
                         <span className="font-medium text-red-700">Error: </span>
                         <span className="text-red-600">{log.error_message}</span>
                       </td>
