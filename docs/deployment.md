@@ -76,28 +76,28 @@ npx wrangler kv namespace create SESSION
 ```bash
 cd apps/worker
 npx wrangler secret put GEMINI_API_KEY
-npx wrangler secret put TRIGGER_TOKEN
+npx wrangler secret put ACCESS_CODE
 cd ../..
 ```
 
 说明:
 
 - `GEMINI_MODEL` 已在 `apps/worker/wrangler.jsonc` 中通过 `vars` 提供默认值。
-- `TRIGGER_TOKEN` 会被 Pages 侧 `/create` 和 `/api/trigger` 复用，建议使用高强度随机字符串。
+- `ACCESS_CODE` 会被 Pages 侧 `/create` 和 `/api/trigger` 复用，建议使用高强度随机字符串。
 
 ### 3.2 Pages（`weather-card-page` 项目）
 
 建议作为 secret 注入（即使不是严格机密，也可统一管理）:
 
 ```bash
-npx wrangler pages secret put TRIGGER_TOKEN --project-name weather-card
+npx wrangler pages secret put ACCESS_CODE --project-name weather-card
 npx wrangler pages secret put WORKER_URL --project-name weather-card
 npx wrangler pages secret put INTERNAL_API_KEY --project-name weather-card
 ```
 
 变量含义:
 
-- `TRIGGER_TOKEN`: 校验 `/create?token=` 与 `/api/trigger`。
+- `ACCESS_CODE`: 管理页面（`/create`、`/logs`）与 `/api/trigger` 的访问密码。
 - `WORKER_URL`: Worker 对外地址，例如 `https://weather-card-worker.<subdomain>.workers.dev`。
 - `INTERNAL_API_KEY`: 保护 `/api/internal/cards`；若不需要内部接口可不配置。
 
@@ -137,7 +137,7 @@ cd ../..
 
 ## 7. 验证部署
 
-将 `<PAGES_URL>` 替换为你的线上地址，`<TOKEN>` 替换为 `TRIGGER_TOKEN`。
+将 `<PAGES_URL>` 替换为你的线上地址，`<TOKEN>` 替换为 `ACCESS_CODE`。
 
 1. 验证页面可访问:
 
@@ -172,7 +172,7 @@ curl -H "Authorization: Bearer <INTERNAL_API_KEY>" "<PAGES_URL>/api/internal/car
 ## 8. 运维与排错建议
 
 1. Cron 时区: `apps/worker/wrangler.jsonc` 的 `0 1 * * *` 是 UTC，每天 `01:00 UTC` 触发。
-2. 若 `POST /api/trigger` 返回 502，优先检查 `WORKER_URL`、Worker 发布状态与 `TRIGGER_TOKEN` 是否一致。
+2. 若 `POST /api/trigger` 返回 502，优先检查 `WORKER_URL`、Worker 发布状态与 `ACCESS_CODE` 是否一致。
 3. 若图片 404，优先检查 D1 中 `image_r2_key` 与 R2 对象是否存在。
 4. 若 `/api/internal/cards` 返回 404，表示未配置 `INTERNAL_API_KEY`（该接口会被主动关闭）。
 5. 先读架构再排错更高效: [architecture.md](./architecture.md)

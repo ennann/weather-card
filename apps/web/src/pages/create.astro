@@ -277,16 +277,18 @@ const totalGenerated = groupStats.reduce((sum, group) => sum + group.generatedCo
             if (city) params.set("city", city);
 
             const resp = await fetch(`/api/trigger?${params}`, { method: "POST" });
-            const data = await resp.json();
+            const text = await resp.text();
+            let data;
+            try { data = JSON.parse(text); } catch { data = null; }
 
-            if (resp.ok) {
+            if (resp.ok && data) {
                 const actualCity = data.city || city || "";
                 resultDiv.innerHTML = `<span class="text-green-600">已触发！</span> 城市：${actualCity || "随机"} / Run ID：<code class="text-[12px]">${data.runId}</code>`;
 
                 const chip = findChipByCity(actualCity);
                 if (chip) markCityGenerated(chip);
             } else {
-                resultDiv.innerHTML = `<span class="text-red-500">失败：</span>${data.error || resp.statusText}`;
+                resultDiv.innerHTML = `<span class="text-red-500">失败：</span>${data?.error || text || resp.statusText}`;
             }
         } catch (e) {
             resultDiv.innerHTML = `<span class="text-red-500">请求失败：</span>${e.message}`;
