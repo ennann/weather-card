@@ -23,6 +23,7 @@ function formatDuration(ms: number | null): string {
 function formatTime(iso: string): string {
   const d = new Date(iso + 'Z');
   return d.toLocaleString('zh-CN', {
+    year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
@@ -97,9 +98,9 @@ export default function LogsTable() {
         <table className="w-full table-fixed text-sm">
           <colgroup>
             <col className="w-32" />
-            <col className="w-44" />
+            <col className="w-64" />
             <col className="w-36" />
-            <col />
+            <col className="w-28" />
             <col className="w-28" />
             <col className="w-24" />
             <col className="w-24" />
@@ -158,7 +159,9 @@ export default function LogsTable() {
                       {formatTime(log.created_at)}
                     </td>
                     <td className="px-4 py-3 font-medium text-ink">
-                      {log.resolved_city_name || log.city}
+                      <span className="block truncate" title={log.resolved_city_name || log.city}>
+                        {log.resolved_city_name || log.city}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-ink-muted">
                       {log.weather_icon && <span className="mr-1">{log.weather_icon}</span>}
