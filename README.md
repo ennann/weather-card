@@ -1,7 +1,7 @@
 # Weather Card
 
 
-![Weather Card](https://resources.yizhe.me/images/weather-card.png)
+![Weather Card](docs/weather-card.png)
 
 
 AI 驱动的天气卡片生成器。每天自动为全球 200+ 城市生成精美的 3D 等距风格天气卡片。
