@@ -19,7 +19,7 @@ export default {
     console.log(`Workflow started: ${instance.id}`);
   },
 
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     // Manual trigger: POST /trigger?city=杭州
@@ -31,11 +31,17 @@ export default {
       try {
         const city = url.searchParams.get('city') || undefined;
         const runId = String(Date.now());
-        const instance = await env.GENERATE_CARD.create({
+        
+        // Push workflow creation to background so it doesn't block HTTP response,
+        // especially crucial for local `wrangler dev` which can block workflows synchronously.
+        const workflowPromise = env.GENERATE_CARD.create({
           id: runId,
           params: { runId, city },
-        });
-        return Response.json({ ok: true, instanceId: instance.id, runId, city });
+        }).catch((e) => console.error('Workflow trigger failed:', e));
+        
+        ctx.waitUntil(workflowPromise);
+
+        return Response.json({ ok: true, instanceId: runId, runId, city });
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         return Response.json({ error: msg }, { status: 500 });
