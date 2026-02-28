@@ -60,7 +60,7 @@ export class GenerateCardWorkflow extends WorkflowEntrypoint<Env, GenerateParams
       const imageResult = await step.do('generate-image', {
         retries: { limit: 1, delay: '10 seconds', backoff: 'linear' },
       }, async () => {
-        const model = this.env.GEMINI_MODEL || 'gemini-3-pro-image-preview';
+        const model = this.env.GEMINI_MODEL || 'gemini-3.1-flash-image-preview';
         const prompt = buildPrompt(city);
         const ai = new GoogleGenAI({ apiKey: this.env.GEMINI_API_KEY });
         const response = await ai.models.generateContent({
