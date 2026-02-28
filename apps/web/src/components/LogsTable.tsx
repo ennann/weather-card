@@ -41,6 +41,7 @@ export default function LogsTable() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -74,6 +75,18 @@ export default function LogsTable() {
   }, []);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  const deleteLog = async (runId: string) => {
+    if (!confirm('确定删除这条记录吗？')) return;
+    setDeletingId(runId);
+    try {
+      await fetch(`/api/logs?run_id=${encodeURIComponent(runId)}`, { method: 'DELETE' });
+      setLogs((prev) => prev.filter((l) => l.run_id !== runId));
+      setTotal((prev) => prev - 1);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="fade-in-up">
@@ -120,6 +133,7 @@ export default function LogsTable() {
             <col className="w-24" />
             <col className="w-24" />
             <col className="w-20" />
+            <col className="w-14" />
           </colgroup>
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-ink-faint">
@@ -132,13 +146,14 @@ export default function LogsTable() {
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Duration</th>
               <th className="px-4 py-3 font-medium">Image</th>
+              <th className="px-4 py-3 font-medium"></th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-border-dim">
-                  {Array.from({ length: 9 }).map((_, j) => (
+                  {Array.from({ length: 10 }).map((_, j) => (
                     <td key={j} className="px-4 py-3.5">
                       <div className="skeleton h-4 w-16 rounded" />
                     </td>
@@ -147,7 +162,7 @@ export default function LogsTable() {
               ))
             ) : logs.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-16 text-center text-ink-muted">
+                <td colSpan={10} className="px-4 py-16 text-center text-ink-muted">
                   No logs found
                 </td>
               </tr>
@@ -216,10 +231,31 @@ export default function LogsTable() {
                         <span className="text-ink-faint">—</span>
                       )}
                     </td>
+                    <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        disabled={deletingId === log.run_id}
+                        onClick={() => deleteLog(log.run_id)}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-ink-faint transition-all hover:bg-red-50 hover:text-red-500 disabled:opacity-30"
+                        title="删除"
+                      >
+                        {deletingId === log.run_id ? (
+                          <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                            <path d="M21 3v5h-5" />
+                          </svg>
+                        ) : (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                          </svg>
+                        )}
+                      </button>
+                    </td>
                   </tr>
                   {expanded === log.run_id && log.error_message && (
                     <tr>
-                      <td colSpan={9} className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm">
+                      <td colSpan={10} className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm">
                         <span className="font-medium text-red-700">Error: </span>
                         <span className="text-red-600">{log.error_message}</span>
                       </td>

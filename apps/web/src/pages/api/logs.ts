@@ -63,3 +63,31 @@ export async function GET(context: APIContext) {
     limit,
   });
 }
+
+/**
+ * DELETE /api/logs?run_id=...
+ * Deletes a single generation run record.
+ */
+export async function DELETE(context: APIContext) {
+  const { env } = context.locals.runtime;
+
+  const token: string = env.ACCESS_CODE ?? '';
+  if (!token) {
+    return new Response('Not configured', { status: 503 });
+  }
+
+  const provided = getTokenFromRequest(context.request);
+  if (provided !== token) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const url = new URL(context.request.url);
+  const runId = url.searchParams.get('run_id');
+  if (!runId) {
+    return Response.json({ error: 'Missing run_id' }, { status: 400 });
+  }
+
+  await env.DB.prepare(`DELETE FROM generation_runs WHERE run_id = ?`).bind(runId).run();
+
+  return Response.json({ ok: true });
+}
