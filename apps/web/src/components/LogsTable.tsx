@@ -42,6 +42,7 @@ export default function LogsTable() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -77,8 +78,8 @@ export default function LogsTable() {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   const deleteLog = async (runId: string) => {
-    if (!confirm('确定删除这条记录吗？')) return;
     setDeletingId(runId);
+    setConfirmTarget(null);
     try {
       await fetch(`/api/logs?run_id=${encodeURIComponent(runId)}`, { method: 'DELETE' });
       setLogs((prev) => prev.filter((l) => l.run_id !== runId));
@@ -235,7 +236,7 @@ export default function LogsTable() {
                       <button
                         type="button"
                         disabled={deletingId === log.run_id}
-                        onClick={() => deleteLog(log.run_id)}
+                        onClick={() => setConfirmTarget(log.run_id)}
                         className="inline-flex h-7 w-7 items-center justify-center rounded-md text-ink-faint transition-all hover:bg-red-50 hover:text-red-500 disabled:opacity-30"
                         title="删除"
                       >
@@ -302,6 +303,44 @@ export default function LogsTable() {
           </button>
         </div>
       </div>
+
+      {/* Custom confirm dialog */}
+      {confirmTarget && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm fade-in"
+          onClick={() => setConfirmTarget(null)}
+        >
+          <div
+            className="w-80 rounded-2xl border border-border bg-surface-raised p-6 shadow-2xl fade-in-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-1 flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </span>
+              <h3 className="text-[15px] font-600 text-ink">删除记录</h3>
+            </div>
+            <p className="mb-5 mt-2 text-sm text-ink-muted">此操作将从数据库中永久删除该条记录，无法恢复。</p>
+            <div className="flex gap-2.5 justify-end">
+              <button
+                onClick={() => setConfirmTarget(null)}
+                className="h-9 rounded-lg border border-border px-4 text-sm font-medium text-ink-muted transition-all hover:bg-surface-dim active:scale-[.98] cursor-pointer"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => deleteLog(confirmTarget)}
+                className="h-9 rounded-lg bg-red-500 px-4 text-sm font-medium text-white transition-all hover:bg-red-600 active:scale-[.98] cursor-pointer"
+              >
+                确认删除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {lightboxImage && (
         <div
